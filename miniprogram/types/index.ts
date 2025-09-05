@@ -6,6 +6,7 @@ export interface UserInfo {
   id: string; // 用户自定义ID
   nickname: string;
   avatar: string;
+  avatarFileID?: string; // 头像的fileID
   createTime: string;
   updateTime?: string;
   lastLoginTime?: string;
@@ -18,6 +19,8 @@ export interface Artwork {
   title: string;
   description: string;
   imageUrl: string;
+  fileID?: string; // 图片的fileID
+  cloudPath?: string; // 云存储路径（备用）
   prompt: string;
   negativePrompt?: string;
   author: UserInfo;
@@ -70,8 +73,10 @@ export interface CreatePageData {
   negativePrompt: string;
   selectedStyle: string;
   generatedImage: string | null;
+  generatedFileID: string | null; // 生成的图片fileID
   generating: boolean;
   publishing: boolean;
+  isRegenerating: boolean;
   canGenerate: boolean;
   taskId: string | null;
   isGenerating: boolean;

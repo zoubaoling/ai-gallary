@@ -65,22 +65,33 @@
 .user-info {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 12rpx 16rpx;
+  gap: 16rpx;
+  padding: 16rpx 20rpx;
   background: white;
   border-radius: 0 0 12rpx 12rpx;
   min-height: 60rpx;
+  box-sizing: border-box;
 }
 
 /* 头像容器 */
 .avatar-container {
   position: relative;
   flex-shrink: 0;
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .user-avatar {
-  width: 40rpx;
-  height: 40rpx;
+  width: 40rpx !important;
+  height: 40rpx !important;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* 确保t-avatar组件的占位图也受到尺寸限制 */
+.user-avatar {
+  display: block;
+  overflow: hidden;
 }
 
 .user-nickname {
@@ -91,6 +102,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
+  max-width: calc(100% - 56rpx); /* 减去头像宽度和间距 */
 }
 
 /* 加载更多 */
@@ -175,14 +187,27 @@
   .user-info {
     padding: 16rpx 20rpx;
     min-height: 70rpx;
+    gap: 18rpx;
   }
   
-  .user-avatar {
+  .avatar-container {
     width: 44rpx;
     height: 44rpx;
   }
   
+  .user-avatar {
+    width: 44rpx !important;
+    height: 44rpx !important;
+  }
+  
+  /* 小屏幕下的头像样式 */
+  .user-avatar {
+    display: block;
+    overflow: hidden;
+  }
+  
   .user-nickname {
     font-size: 28rpx;
+    max-width: calc(100% - 62rpx); /* 减去头像宽度和间距 */
   }
 }

@@ -8,8 +8,10 @@ Page<CreatePageData, any>({
     negativePrompt: '',
     selectedStyle: '',
     generatedImage: null,
+    generatedFileID: null, // 存储生成的图片fileID
     generating: false,
     publishing: false,
+    isRegenerating: false,
     canGenerate: false,
     taskId: null,
     isGenerating: false,
@@ -234,10 +236,20 @@ Page<CreatePageData, any>({
             const downloadResult = await cloudService.downloadImageToCloud(imageUrl, fileName);
             if (downloadResult.success) {
               const cloudUrl = downloadResult.data.cloudUrl;
+              const fileID = downloadResult.data.fileID;
+              
+              console.log('下载图片成功:', {
+                cloudUrl: cloudUrl,
+                fileID: fileID,
+                fileName: fileName
+              });
+              
               this.setData({
                 generatedImage: cloudUrl,
+                generatedFileID: fileID, // 存储fileID
                 isGenerating: false,
                 generating: false,
+                isRegenerating: false,
                 canGenerate: this.data.prompt && this.data.prompt.trim().length > 0
               });
               this.showToast('图片生成成功！');
@@ -264,6 +276,7 @@ Page<CreatePageData, any>({
         this.setData({
           isGenerating: false,
           generating: false,
+          isRegenerating: false,
           canGenerate: this.data.prompt && this.data.prompt.trim().length > 0
         });
         this.showToast('生成失败，请重试');
@@ -272,6 +285,61 @@ Page<CreatePageData, any>({
 
     // 开始轮询
     poll();
+  },
+
+  // 点击重新生成按钮
+  async onRegenerateTap() {
+    if (!this.data.prompt.trim()) {
+      this.showToast('请输入描述内容');
+      return;
+    }
+
+    this.setData({
+      isRegenerating: true,
+      isGenerating: true,
+      generating: true,
+      generatedImage: null,
+      canGenerate: false
+    });
+
+    try {
+      // 构建完整的提示词
+      let fullPrompt = this.data.prompt;
+      if (this.data.selectedStyle) {
+        fullPrompt += `，${this.data.selectedStyle}风格`;
+      }
+
+      // 创建新的AI图片生成任务
+      const taskResult = await cloudService.createImageTask(
+        fullPrompt,
+        this.data.negativePrompt,
+        '1024*1024',
+        1,
+        this.data.currentSeed // 使用相同的seed确保一致性
+      );
+
+      if (!taskResult.success) {
+        throw new Error(taskResult.error || '创建任务失败');
+      }
+
+      const taskId = taskResult.data.taskId;
+      this.setData({
+        taskId: taskId
+      });
+
+      // 开始轮询任务结果
+      await this.pollTaskResult(taskId);
+
+    } catch (error) {
+      console.error('重新生成图片失败:', error);
+      this.setData({
+        isRegenerating: false,
+        isGenerating: false,
+        generating: false,
+        canGenerate: this.data.prompt && this.data.prompt.trim().length > 0
+      });
+      this.showToast('重新生成失败，请重试');
+    }
   },
 
   // 点击发布按钮
@@ -314,11 +382,18 @@ Page<CreatePageData, any>({
   // 发布到画廊
   async publishToGallery(): Promise<void> {
     try {
+      console.log('发布图片数据:', {
+        imageUrl: this.data.generatedImage,
+        fileID: this.data.generatedFileID,
+        prompt: this.data.prompt
+      });
+      
       // 调用云函数发布图片
       const result = await wx.cloud.callFunction({
         name: 'publishImage',
         data: {
           imageUrl: this.data.generatedImage,
+          fileID: this.data.generatedFileID, // 传递fileID
           prompt: this.data.prompt,
           negativePrompt: this.data.negativePrompt,
           style: this.data.selectedStyle

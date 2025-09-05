@@ -105,7 +105,7 @@ export class CloudService {
   }
 
   // 更新用户头像昵称（使用新的头像昵称填写组件）
-  async updateUserProfile(nickname: string, avatarUrl: string): Promise<CloudLoginResponse> {
+  async updateUserProfile(nickname: string, avatarUrl: string, avatarFileID?: string): Promise<CloudLoginResponse> {
     try {
       // 获取当前用户信息
       const currentUser = wx.getStorageSync('userInfo');
@@ -124,6 +124,7 @@ export class CloudService {
             nickName: nickname,
             avatarUrl: avatarUrl
           },
+          avatarFileID: avatarFileID, // 传递头像fileID
           openid: currentUser.openid
         }
       });

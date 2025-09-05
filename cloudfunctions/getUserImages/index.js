@@ -55,10 +55,30 @@ exports.main = async (event, context) => {
       })
       .count();
 
+    // 5. 处理图片数据，优先返回fileID
+    const processedImages = imagesResult.data.map(image => {
+      // 优先使用fileID，如果没有则提取云存储路径
+      let cloudPath = image.cloudPath;
+      if (!image.fileID && image.imageUrl && image.imageUrl.includes('tcb.qcloud.la')) {
+        // 从临时URL中提取云存储路径
+        const urlParts = image.imageUrl.split('?')[0]; // 移除查询参数
+        const pathParts = urlParts.split('/');
+        const imagesIndex = pathParts.indexOf('images');
+        if (imagesIndex !== -1) {
+          cloudPath = pathParts.slice(imagesIndex).join('/');
+        }
+      }
+      
+      return {
+        ...image,
+        cloudPath: cloudPath // 返回云存储路径作为备用
+      };
+    });
+
     return {
       success: true,
       data: {
-        images: imagesResult.data,
+        images: processedImages,
         total: countResult.total,
         page: page,
         pageSize: pageSize,

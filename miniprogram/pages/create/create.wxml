@@ -75,18 +75,30 @@
       />
     </view>
     
-    <!-- 发布按钮 -->
-    <t-button
-      wx:if="{{generatedImage && !isGenerating}}"
-      class="publish-btn"
-      theme="success"
-      size="large"
-      loading="{{publishing}}"
-      disabled="{{publishing}}"
-      bind:tap="onPublishTap"
-    >
-      {{publishing ? '发布中...' : '发布到画廊'}}
-    </t-button>
+    <!-- 操作按钮区域 -->
+    <view class="action-buttons" wx:if="{{generatedImage && !isGenerating}}">
+      <t-button
+        class="regenerate-btn"
+        theme="default"
+        size="large"
+        loading="{{isRegenerating}}"
+        disabled="{{isRegenerating}}"
+        bind:tap="onRegenerateTap"
+      >
+        {{isRegenerating ? '重新生成中...' : '重新生成'}}
+      </t-button>
+      
+      <t-button
+        class="publish-btn"
+        theme="success"
+        size="large"
+        loading="{{publishing}}"
+        disabled="{{publishing}}"
+        bind:tap="onPublishTap"
+      >
+        {{publishing ? '发布中...' : '发布到画廊'}}
+      </t-button>
+    </view>
   </view>
 
   <!-- 灵感提示 -->

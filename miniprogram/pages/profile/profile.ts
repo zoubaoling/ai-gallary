@@ -17,17 +17,35 @@ Page<ProfilePageData, any>({
     this.checkLoginStatus();
   },
 
-  onShow() {
+  async onShow() {
     // 页面显示时检查登录状态和刷新数据
-    this.checkLoginStatus();
+    await this.checkLoginStatus();
+    // 如果用户已登录，刷新数据
     if (this.data.userInfo) {
       this.loadMyArtworks();
     }
   },
 
   // 检查登录状态
-  checkLoginStatus() {
+  async checkLoginStatus() {
     const userInfo = wx.getStorageSync('userInfo') as UserInfo | null;
+    
+    if (userInfo && userInfo.avatarFileID) {
+      // 动态获取头像临时URL
+      try {
+        const avatarTempResult = await wx.cloud.getTempFileURL({
+          fileList: [userInfo.avatarFileID]
+        });
+        if (avatarTempResult.fileList && avatarTempResult.fileList[0] && avatarTempResult.fileList[0].tempFileURL) {
+          userInfo.avatar = avatarTempResult.fileList[0].tempFileURL;
+        } else {
+          console.warn('使用avatarFileID获取临时URL为空:', userInfo.avatarFileID);
+        }
+      } catch (error) {
+        console.error('使用avatarFileID获取临时URL失败:', error, 'avatarFileID:', userInfo.avatarFileID);
+      }
+    }
+    
     this.setData({
       userInfo
     });
@@ -90,19 +108,76 @@ Page<ProfilePageData, any>({
       if (result.result && (result.result as any).success && (result.result as any).data) {
         const { images, hasMore } = (result.result as any).data;
         
-        // 转换数据格式以匹配现有的 Artwork 类型
-        const artworks = images.map((image: any) => ({
-          id: image._id,
-          title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
-          description: image.prompt,
-          imageUrl: image.imageUrl,
-          prompt: image.prompt,
-          negativePrompt: image.negativePrompt,
-          style: image.style,
-          author: image.author,
-          createTime: this.formatTime(image.createTime),
-          likeCount: image.likeCount,
-          isLiked: image.isLiked
+        // 转换数据格式以匹配现有的 Artwork 类型，并动态获取临时URL
+        const artworks = await Promise.all(images.map(async (image: any) => {
+          let imageUrl = image.imageUrl;
+          
+          // 优先使用fileID获取临时URL
+          if (image.fileID) {
+            try {
+              const tempFileResult = await wx.cloud.getTempFileURL({
+                fileList: [image.fileID]
+              });
+              if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
+                imageUrl = tempFileResult.fileList[0].tempFileURL;
+              } else {
+                console.warn('使用fileID获取临时URL为空:', image.fileID);
+              }
+            } catch (error) {
+              console.error('使用fileID获取临时URL失败:', error, 'fileID:', image.fileID);
+            }
+          }
+          
+          // 如果没有fileID或获取失败，使用云存储路径
+          if (!imageUrl || imageUrl === image.imageUrl) {
+            if (image.cloudPath) {
+              try {
+                const tempFileResult = await wx.cloud.getTempFileURL({
+                  fileList: [image.cloudPath]
+                });
+                if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
+                  imageUrl = tempFileResult.fileList[0].tempFileURL;
+                } else {
+                  console.warn('使用cloudPath获取临时URL为空:', image.cloudPath);
+                }
+              } catch (error) {
+                console.error('使用cloudPath获取临时URL失败:', error, 'cloudPath:', image.cloudPath);
+              }
+            } else if (image.imageUrl && image.imageUrl.includes('tcb.qcloud.la')) {
+              // 最后尝试从临时URL中提取路径
+              try {
+                const urlParts = image.imageUrl.split('?')[0];
+                const pathParts = urlParts.split('/');
+                const imagesIndex = pathParts.indexOf('images');
+                if (imagesIndex !== -1) {
+                  const extractedPath = pathParts.slice(imagesIndex).join('/');
+                  
+                  const tempFileResult = await wx.cloud.getTempFileURL({
+                    fileList: [extractedPath]
+                  });
+                  if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
+                    imageUrl = tempFileResult.fileList[0].tempFileURL;
+                  }
+                }
+              } catch (error) {
+                console.error('从临时URL提取路径失败:', error);
+              }
+            }
+          }
+          
+          return {
+            id: image._id,
+            title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
+            description: image.prompt,
+            imageUrl: imageUrl,
+            prompt: image.prompt,
+            negativePrompt: image.negativePrompt,
+            style: image.style,
+            author: image.author,
+            createTime: this.formatTime(image.createTime),
+            likeCount: image.likeCount,
+            isLiked: image.isLiked
+          };
         }));
 
         this.setData({
@@ -177,19 +252,59 @@ Page<ProfilePageData, any>({
       if (result.result && (result.result as any).success && (result.result as any).data) {
         const { images, hasMore } = (result.result as any).data;
         
-        // 转换数据格式以匹配现有的 Artwork 类型
-        const newArtworks = images.map((image: any) => ({
-          id: image._id,
-          title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
-          description: image.prompt,
-          imageUrl: image.imageUrl,
-          prompt: image.prompt,
-          negativePrompt: image.negativePrompt,
-          style: image.style,
-          author: image.author,
-          createTime: this.formatTime(image.createTime),
-          likeCount: image.likeCount,
-          isLiked: image.isLiked
+        // 转换数据格式以匹配现有的 Artwork 类型，并动态获取临时URL
+        const newArtworks = await Promise.all(images.map(async (image: any) => {
+          let imageUrl = image.imageUrl;
+          
+          // 优先使用云存储路径获取临时URL
+          if (image.cloudPath) {
+            try {
+              const tempFileResult = await wx.cloud.getTempFileURL({
+                fileList: [image.cloudPath]
+              });
+              if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
+                imageUrl = tempFileResult.fileList[0].tempFileURL;
+              } else {
+                console.warn('获取临时URL为空，使用原始URL:', image.cloudPath);
+              }
+            } catch (error) {
+              console.error('获取临时URL失败:', error, 'cloudPath:', image.cloudPath);
+              // 如果获取失败，使用原始URL
+            }
+          } else if (image.imageUrl && image.imageUrl.includes('tcb.qcloud.la')) {
+            // 如果没有cloudPath但有临时URL，尝试提取路径
+            try {
+              const urlParts = image.imageUrl.split('?')[0];
+              const pathParts = urlParts.split('/');
+              const imagesIndex = pathParts.indexOf('images');
+              if (imagesIndex !== -1) {
+                const extractedPath = pathParts.slice(imagesIndex).join('/');
+              
+                              const tempFileResult = await wx.cloud.getTempFileURL({
+                  fileList: [extractedPath]
+                });
+                if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
+                  imageUrl = tempFileResult.fileList[0].tempFileURL;
+                }
+              }
+            } catch (error) {
+              console.error('从临时URL提取路径失败:', error);
+            }
+          }
+          
+          return {
+            id: image._id,
+            title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
+            description: image.prompt,
+            imageUrl: imageUrl,
+            prompt: image.prompt,
+            negativePrompt: image.negativePrompt,
+            style: image.style,
+            author: image.author,
+            createTime: this.formatTime(image.createTime),
+            likeCount: image.likeCount,
+            isLiked: image.isLiked
+          };
         }));
 
         this.setData({
@@ -242,7 +357,8 @@ Page<ProfilePageData, any>({
         // 更新用户头像信息
         const result = await cloudService.updateUserProfile(
           this.data.userInfo?.nickname || '微信用户',
-          uploadResult.cloudUrl
+          uploadResult.cloudUrl,
+          uploadResult.fileID // 传递fileID
         );
         
         if (result.success && result.userInfo) {
@@ -263,7 +379,7 @@ Page<ProfilePageData, any>({
   },
 
   // 上传头像到云存储
-  async uploadAvatarToCloud(localPath: string): Promise<{success: boolean, cloudUrl?: string, error?: string}> {
+  async uploadAvatarToCloud(localPath: string): Promise<{success: boolean, cloudUrl?: string, fileID?: string, error?: string}> {
     try {
       if (!this.data.userInfo?.id) {
         return {
@@ -278,7 +394,8 @@ Page<ProfilePageData, any>({
       if (result.success && result.data) {
         return {
           success: true,
-          cloudUrl: result.data.tempUrl
+          cloudUrl: result.data.tempUrl,
+          fileID: result.data.fileID
         };
       } else {
         return {

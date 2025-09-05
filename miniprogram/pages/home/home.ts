@@ -17,9 +17,7 @@ Page<HomePageData, any>({
 
   onShow() {
     // 页面显示时刷新数据
-    if (this.data.artworks.length > 0) {
-      this.refreshData();
-    }
+    this.refreshData();
   },
 
   // 下拉刷新
@@ -65,19 +63,110 @@ Page<HomePageData, any>({
       if (result.result && (result.result as any).success && (result.result as any).data) {
         const { images, hasMore } = (result.result as any).data;
         
-        // 转换数据格式以匹配现有的 Artwork 类型
-        const artworks = images.map((image: any) => ({
-          id: image._id,
-          title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
-          description: image.prompt,
-          imageUrl: image.imageUrl,
-          prompt: image.prompt,
-          negativePrompt: image.negativePrompt,
-          style: image.style,
-          author: image.author,
-          createTime: this.formatTime(image.createTime),
-          likeCount: image.likeCount,
-          isLiked: image.isLiked
+        // 转换数据格式以匹配现有的 Artwork 类型，并动态获取临时URL
+        const artworks = await Promise.all(images.map(async (image: any) => {
+          let imageUrl = image.imageUrl;
+          
+          // 优先使用fileID获取临时URL
+          if (image.fileID) {
+            console.log('使用fileID获取临时URL:', image.fileID);
+            try {
+              const tempFileResult = await wx.cloud.getTempFileURL({
+                fileList: [image.fileID]
+              });
+              console.log('getTempFileURL结果:', tempFileResult);
+              if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
+                imageUrl = tempFileResult.fileList[0].tempFileURL;
+                console.log('成功获取临时URL:', imageUrl);
+              } else {
+                console.warn('使用fileID获取临时URL为空:', image.fileID, '结果:', tempFileResult);
+              }
+            } catch (error) {
+              console.error('使用fileID获取临时URL失败:', error, 'fileID:', image.fileID);
+            }
+          }
+          
+          // 如果没有fileID或获取失败，使用云存储路径
+          if (!imageUrl || imageUrl === image.imageUrl) {
+            if (image.cloudPath) {
+              try {
+                const tempFileResult = await wx.cloud.getTempFileURL({
+                  fileList: [image.cloudPath]
+                });
+                if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
+                  imageUrl = tempFileResult.fileList[0].tempFileURL;
+                } else {
+                  console.warn('使用cloudPath获取临时URL为空:', image.cloudPath);
+                }
+              } catch (error) {
+                console.error('使用cloudPath获取临时URL失败:', error, 'cloudPath:', image.cloudPath);
+              }
+            } else if (image.imageUrl && image.imageUrl.includes('tcb.qcloud.la')) {
+              // 最后尝试从临时URL中提取路径
+              try {
+                const urlParts = image.imageUrl.split('?')[0];
+                const pathParts = urlParts.split('/');
+                const imagesIndex = pathParts.indexOf('images');
+                if (imagesIndex !== -1) {
+                  const extractedPath = pathParts.slice(imagesIndex).join('/');
+                  
+                  const tempFileResult = await wx.cloud.getTempFileURL({
+                    fileList: [extractedPath]
+                  });
+                  if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
+                    imageUrl = tempFileResult.fileList[0].tempFileURL;
+                  }
+                }
+              } catch (error) {
+                console.error('从临时URL提取路径失败:', error);
+              }
+            }
+          }
+          
+          // 处理用户头像的临时URL
+          let authorAvatar = image.author.avatar;
+          console.log('处理用户头像:', {
+            nickname: image.author.nickname,
+            originalAvatar: image.author.avatar,
+            avatarFileID: image.author.avatarFileID
+          });
+          
+          if (image.author.avatarFileID) {
+            console.log('使用avatarFileID获取临时URL:', image.author.avatarFileID);
+            try {
+              const avatarTempResult = await wx.cloud.getTempFileURL({
+                fileList: [image.author.avatarFileID]
+              });
+              console.log('头像getTempFileURL结果:', avatarTempResult);
+              if (avatarTempResult.fileList && avatarTempResult.fileList[0] && avatarTempResult.fileList[0].tempFileURL) {
+                authorAvatar = avatarTempResult.fileList[0].tempFileURL;
+                console.log('成功获取头像临时URL:', authorAvatar);
+              } else {
+                console.warn('使用avatarFileID获取临时URL为空:', image.author.avatarFileID, '结果:', avatarTempResult);
+              }
+            } catch (error) {
+              console.error('使用avatarFileID获取临时URL失败:', error, 'avatarFileID:', image.author.avatarFileID);
+            }
+          } else {
+            console.log('用户没有avatarFileID，使用原始头像URL:', authorAvatar);
+          }
+          
+          return {
+            id: image._id,
+            title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
+            description: image.prompt,
+            imageUrl: imageUrl,
+            prompt: image.prompt,
+            negativePrompt: image.negativePrompt,
+            style: image.style,
+            author: {
+              ...image.author,
+              avatar: authorAvatar
+            },
+            createTime: this.formatTime(image.createTime),
+            likeCount: image.likeCount,
+            isLiked: image.isLiked
+          };
         }));
         
         this.setData({

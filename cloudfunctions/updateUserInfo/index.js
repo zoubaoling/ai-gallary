@@ -8,7 +8,7 @@ cloud.init({
 const db = cloud.database();
 
 exports.main = async (event, context) => {
-  const { userInfo, openid } = event;
+  const { userInfo, openid, avatarFileID } = event;
   
   try {
     // 获取当前用户的openid
@@ -40,6 +40,7 @@ exports.main = async (event, context) => {
     const updateData = {
       nickname: userInfo.nickName || existingUser.nickname,
       avatar: userInfo.avatarUrl || existingUser.avatar,
+      avatarFileID: avatarFileID || existingUser.avatarFileID, // 存储头像fileID
       updateTime: new Date().toISOString(),
       lastLoginTime: new Date().toISOString(),
       isActive: true

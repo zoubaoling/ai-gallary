@@ -8,7 +8,7 @@ cloud.init({
 const db = cloud.database();
 
 exports.main = async (event, context) => {
-  const { imageUrl, prompt, negativePrompt, style } = event;
+  const { imageUrl, prompt, negativePrompt, style, fileID } = event;
   
   try {
     // 1. 获取用户信息
@@ -29,6 +29,15 @@ exports.main = async (event, context) => {
       };
     }
 
+    // 3. 验证fileID
+    let finalFileID = fileID;
+    if (!finalFileID) {
+      console.warn('未提供fileID，无法构造正确的fileID，请确保传递正确的fileID');
+      // 不再尝试构造fileID，因为格式复杂且容易出错
+    } else {
+      console.log('使用提供的fileID:', finalFileID);
+    }
+
     // 3. 查询用户信息
     const userResult = await db.collection('users').where({
       openid: OPENID
@@ -42,10 +51,30 @@ exports.main = async (event, context) => {
     }
 
     const userInfo = userResult.data[0];
+    
+    console.log('用户信息:', {
+      nickname: userInfo.nickname,
+      avatar: userInfo.avatar,
+      avatarFileID: userInfo.avatarFileID
+    });
 
-    // 4. 构建图片数据
+    // 4. 从临时URL中提取云存储路径（作为备用）
+    let cloudPath = imageUrl;
+    if (imageUrl && imageUrl.includes('tcb.qcloud.la')) {
+      // 从临时URL中提取云存储路径
+      const urlParts = imageUrl.split('?')[0]; // 移除查询参数
+      const pathParts = urlParts.split('/');
+      const imagesIndex = pathParts.indexOf('images');
+      if (imagesIndex !== -1) {
+        cloudPath = pathParts.slice(imagesIndex).join('/');
+      }
+    }
+
+    // 5. 构建图片数据
     const imageData = {
-      imageUrl: imageUrl,
+      imageUrl: imageUrl, // 保留原始URL作为备份
+      fileID: finalFileID, // 优先存储fileID
+      cloudPath: cloudPath, // 存储云存储路径作为备用
       prompt: prompt,
       negativePrompt: negativePrompt || '',
       style: style || '',
@@ -54,6 +83,7 @@ exports.main = async (event, context) => {
         openid: userInfo.openid,
         nickname: userInfo.nickname,
         avatar: userInfo.avatar,
+        avatarFileID: userInfo.avatarFileID, // 保存用户头像的fileID
         createTime: userInfo.createTime
       },
       likeCount: 0,
