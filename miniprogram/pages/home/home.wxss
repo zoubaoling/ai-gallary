@@ -22,6 +22,7 @@
   transition: transform 0.2s ease;
   display: flex;
   flex-direction: column;
+  height: 400rpx; /* 固定卡片高度 */
 }
 
 .artwork-item:active {
@@ -32,7 +33,7 @@
 .image-container {
   position: relative;
   width: 100%;
-  height: 280rpx;
+  flex: 1; /* 占据剩余空间 */
   overflow: hidden;
 }
 
@@ -65,44 +66,50 @@
 .user-info {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 16rpx 20rpx;
+  gap: 12rpx;
+  padding: 12rpx 16rpx;
   background: white;
   border-radius: 0 0 12rpx 12rpx;
-  min-height: 60rpx;
+  height: 80rpx; /* 固定用户信息高度 */
   box-sizing: border-box;
+  flex-shrink: 0; /* 防止被压缩 */
 }
 
-/* 头像容器 */
+/* 头像容器 - 确保加载成功和失败时大小一致 */
 .avatar-container {
-  position: relative;
+  width: 48rpx;
+  height: 48rpx;
   flex-shrink: 0;
-  width: 40rpx;
-  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-avatar {
-  width: 40rpx !important;
-  height: 40rpx !important;
+  width: 48rpx !important;
+  height: 48rpx !important;
   border-radius: 50%;
   overflow: hidden;
 }
 
-/* 确保t-avatar组件的占位图也受到尺寸限制 */
-.user-avatar {
-  display: block;
+/* 自定义头像图片样式 */
+.custom-avatar {
+  width: 48rpx !important;
+  height: 48rpx !important;
+  border-radius: 50%;
   overflow: hidden;
 }
 
 .user-nickname {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: #333;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
-  max-width: calc(100% - 56rpx); /* 减去头像宽度和间距 */
+  line-height: 1.2;
+  max-width: calc(100% - 68rpx); /* 减去头像宽度和间距 */
 }
 
 /* 加载更多 */
@@ -172,10 +179,6 @@
     gap: 16rpx;
   }
   
-  .image-container {
-    height: 400rpx;
-  }
-  
   .prompt-section {
     padding: 16rpx 20rpx 12rpx;
   }
@@ -185,29 +188,23 @@
   }
   
   .user-info {
-    padding: 16rpx 20rpx;
-    min-height: 70rpx;
-    gap: 18rpx;
+    padding: 12rpx 16rpx;
+    height: 80rpx; /* 保持固定高度 */
+    gap: 12rpx;
   }
   
   .avatar-container {
-    width: 44rpx;
-    height: 44rpx;
+    width: 48rpx;
+    height: 48rpx;
   }
   
   .user-avatar {
-    width: 44rpx !important;
-    height: 44rpx !important;
-  }
-  
-  /* 小屏幕下的头像样式 */
-  .user-avatar {
-    display: block;
-    overflow: hidden;
+    width: 48rpx !important;
+    height: 48rpx !important;
   }
   
   .user-nickname {
-    font-size: 28rpx;
-    max-width: calc(100% - 62rpx); /* 减去头像宽度和间距 */
+    font-size: 24rpx;
+    max-width: calc(100% - 68rpx); /* 减去头像宽度和间距 */
   }
 }

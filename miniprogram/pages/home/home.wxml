@@ -34,12 +34,24 @@
       <!-- 用户信息区域 -->
       <view class="user-info">
         <view class="avatar-container">
+          <!-- 当头像加载失败时显示自定义图片 -->
+          <image 
+            wx:if="{{item.avatarLoadFailed}}"
+            class="user-avatar custom-avatar"
+            src="/assets/icons/user-avatar.png"
+            mode="aspectFill"
+          />
+          
+          <!-- 正常显示t-avatar -->
           <t-avatar 
+            wx:else
             class="user-avatar"
             size="small"
             shape="circle"
-            image="{{item.author.avatar || '/assets/icons/user-avatar.png'}}"
+            image="{{item.author.avatar}}"
+            data-index="{{index}}"
             bind:error="onAvatarError"
+            icon="user"
           />
         </view>
         <text class="user-nickname">{{item.author.nickname}}</text>

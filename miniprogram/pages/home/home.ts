@@ -234,9 +234,12 @@ Page<HomePageData, any>({
 
   // 头像加载错误
   onAvatarError(e: any) {
-    console.error('头像加载失败:', e);
-    // 头像加载失败时，t-avatar组件会自动使用默认图片
-    // 默认图片路径已在WXML中设置：/assets/icons/user-avatar.png
+    const index = e.currentTarget.dataset.index;
+    if (index !== undefined) {
+      this.setData({
+        [`artworks[${index}].avatarLoadFailed`]: true
+      });
+    }
   },
 
   // 格式化时间
