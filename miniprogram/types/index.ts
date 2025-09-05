@@ -1,9 +1,15 @@
 // 用户信息类型
 export interface UserInfo {
-  id: string;
+  _id?: string; // 云数据库文档ID
+  openid?: string; // 微信openid
+  unionid?: string; // 微信unionid
+  id: string; // 用户自定义ID
   nickname: string;
   avatar: string;
   createTime: string;
+  updateTime?: string;
+  lastLoginTime?: string;
+  isActive?: boolean;
 }
 
 // AI画作类型
@@ -81,6 +87,7 @@ export interface IAppOption {
   onShow(): void;
   onHide(): void;
   initApp(): void;
+  initCloud(): void;
   checkLoginStatus(): void;
   initConfig(): void;
   setUserInfo(userInfo: UserInfo): void;
@@ -121,4 +128,20 @@ export interface InspirationTip {
   title: string;
   prompt: string;
   example: string;
+}
+
+// 云开发登录响应类型
+export interface CloudLoginResponse {
+  success: boolean;
+  userInfo?: UserInfo;
+  error?: string;
+  isNewUser?: boolean;
+}
+
+// 云数据库操作结果类型
+export interface CloudDBResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  count?: number;
 }

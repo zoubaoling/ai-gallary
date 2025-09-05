@@ -3,13 +3,28 @@
   <!-- 用户信息区域 -->
   <view class="user-info-section">
     <view class="user-info" wx:if="{{userInfo}}">
-      <t-avatar 
-        class="user-avatar"
-        size="large"
-        image="{{userInfo.avatar}}"
-      />
+      <!-- 头像昵称填写组件 -->
+      <button 
+        class="avatar-nickname-btn"
+        open-type="chooseAvatar"
+        bind:chooseavatar="onChooseAvatar"
+      >
+        <t-avatar 
+          class="user-avatar"
+          size="large"
+          image="{{userInfo.avatar}}"
+        />
+      </button>
+      
       <view class="user-details">
-        <text class="user-name">{{userInfo.nickname}}</text>
+        <input 
+          class="nickname-input"
+          type="nickname"
+          placeholder="请输入昵称"
+          value="{{userInfo.nickname}}"
+          bind:change="onNicknameChange"
+          bind:blur="onNicknameBlur"
+        />
         <text class="user-stats">已创作 {{myArtworks.length}} 幅作品</text>
       </view>
     </view>

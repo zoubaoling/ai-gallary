@@ -1,5 +1,6 @@
 // 创建图片页面
 import { CreatePageData, CreateImageRequest, CreateImageResponse, ArtStyle, InspirationTip } from '../../types/index';
+import { cloudService } from '../../utils/cloudService';
 
 Page<CreatePageData, any>({
   data: {
@@ -228,18 +229,48 @@ Page<CreatePageData, any>({
     }
   },
 
-  // 模拟发布到画廊
+  // 发布到画廊
   async publishToGallery(): Promise<void> {
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // 这里可以调用真实的API
-    console.log('发布到画廊:', {
-      prompt: this.data.prompt,
-      negativePrompt: this.data.negativePrompt,
-      imageUrl: this.data.generatedImage,
-      style: this.data.selectedStyle
-    });
+    try {
+      // 获取当前用户信息
+      const app = getApp();
+      const userInfo = app.globalData.userInfo;
+      
+      if (!userInfo) {
+        throw new Error('用户未登录');
+      }
+
+      // 构建作品数据
+      const artwork = {
+        title: this.data.prompt.substring(0, 20) + (this.data.prompt.length > 20 ? '...' : ''),
+        description: this.data.prompt,
+        imageUrl: this.data.generatedImage,
+        prompt: this.data.prompt,
+        negativePrompt: this.data.negativePrompt,
+        style: this.data.selectedStyle,
+        author: {
+          id: userInfo.id,
+          openid: userInfo.openid,
+          nickname: userInfo.nickname,
+          avatar: userInfo.avatar,
+          createTime: userInfo.createTime
+        },
+        likeCount: 0,
+        isLiked: false
+      };
+
+      // 保存到云数据库
+      const result = await cloudService.saveArtwork(artwork);
+      
+      if (!result.success) {
+        throw new Error(result.error || '保存作品失败');
+      }
+
+      console.log('作品发布成功:', result.data);
+    } catch (error) {
+      console.error('发布作品失败:', error);
+      throw error;
+    }
   },
 
   // 点击灵感提示

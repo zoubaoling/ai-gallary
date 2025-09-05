@@ -17,6 +17,19 @@
   gap: 24rpx;
 }
 
+/* 头像昵称按钮 */
+.avatar-nickname-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.avatar-nickname-btn::after {
+  border: none;
+}
+
 .user-avatar {
   flex-shrink: 0;
 }
@@ -26,6 +39,22 @@
   display: flex;
   flex-direction: column;
   gap: 8rpx;
+}
+
+/* 昵称输入框 */
+.nickname-input {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.nickname-input:focus {
+  outline: none;
 }
 
 .user-name {

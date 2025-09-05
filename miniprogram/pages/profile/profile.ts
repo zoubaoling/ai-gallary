@@ -1,5 +1,6 @@
 // 我的页面
 import { ProfilePageData, UserInfo, Artwork } from '../../types/index';
+import { cloudService } from '../../utils/cloudService';
 
 Page<ProfilePageData, any>({
   data: {
@@ -31,35 +32,37 @@ Page<ProfilePageData, any>({
   },
 
   // 微信登录
-  onLoginTap() {
-    wx.getUserProfile({
-      desc: '用于完善用户资料',
-      success: (res) => {
-        console.log('获取用户信息成功:', res);
+  async onLoginTap() {
+    try {
+      this.showToast('正在登录...');
+      
+      // 使用云开发进行登录
+      const result = await cloudService.getUserProfile();
+      
+      if (result.success && result.userInfo) {
+        // 保存用户信息到本地存储
+        wx.setStorageSync('userInfo', result.userInfo);
         
-        // 模拟登录成功
-        const userInfo: UserInfo = {
-          id: 'user_' + Date.now(),
-          nickname: res.userInfo.nickName,
-          avatar: res.userInfo.avatarUrl,
-          createTime: new Date().toISOString()
-        };
-
-        // 保存用户信息
-        wx.setStorageSync('userInfo', userInfo);
+        // 更新全局用户信息
+        const app = getApp();
+        app.setUserInfo(result.userInfo);
         
         this.setData({
-          userInfo
+          userInfo: result.userInfo
         });
 
-        this.showToast('登录成功');
+        const message = result.isNewUser ? '注册成功！' : '登录成功！';
+        this.showToast(message);
+        
+        // 加载用户作品
         this.loadMyArtworks();
-      },
-      fail: (err) => {
-        console.error('获取用户信息失败:', err);
-        this.showToast('登录失败，请重试');
+      } else {
+        this.showToast(result.error || '登录失败，请重试');
       }
-    });
+    } catch (error) {
+      console.error('登录异常:', error);
+      this.showToast('登录异常，请重试');
+    }
   },
 
   // 加载我的作品
@@ -71,17 +74,44 @@ Page<ProfilePageData, any>({
     });
 
     try {
-      const artworks = await this.fetchMyArtworks();
-      this.setData({
-        myArtworks: artworks,
-        loading: false
-      });
+      // 使用云开发获取用户作品
+      const result = await cloudService.getUserArtworks(
+        this.data.userInfo.openid || this.data.userInfo.id,
+        this.data.currentPage,
+        10
+      );
+
+      if (result.success && result.data) {
+        this.setData({
+          myArtworks: result.data,
+          loading: false,
+          hasMore: result.count === 10 // 如果返回10条，可能还有更多
+        });
+      } else {
+        // 如果云开发失败，使用模拟数据作为备选
+        console.warn('云开发获取作品失败，使用模拟数据:', result.error);
+        const artworks = await this.fetchMyArtworks();
+        this.setData({
+          myArtworks: artworks,
+          loading: false
+        });
+      }
     } catch (error) {
       console.error('加载作品失败:', error);
-      this.setData({
-        loading: false
-      });
-      this.showToast('加载失败，请重试');
+      // 使用模拟数据作为备选
+      try {
+        const artworks = await this.fetchMyArtworks();
+        this.setData({
+          myArtworks: artworks,
+          loading: false
+        });
+      } catch (fallbackError) {
+        console.error('备选方案也失败:', fallbackError);
+        this.setData({
+          loading: false
+        });
+        this.showToast('加载失败，请重试');
+      }
     }
   },
 
@@ -179,6 +209,73 @@ Page<ProfilePageData, any>({
     wx.navigateTo({
       url: '/pages/create/create'
     });
+  },
+
+  // 选择头像
+  async onChooseAvatar(e: any) {
+    try {
+      const { avatarUrl } = e.detail;
+      console.log('选择头像:', avatarUrl);
+      
+      // 更新用户头像
+      const result = await cloudService.updateUserProfile(
+        this.data.userInfo?.nickname || '微信用户',
+        avatarUrl
+      );
+      
+      if (result.success && result.userInfo) {
+        this.setData({
+          userInfo: result.userInfo
+        });
+        this.showToast('头像更新成功');
+      } else {
+        this.showToast(result.error || '头像更新失败');
+      }
+    } catch (error) {
+      console.error('选择头像失败:', error);
+      this.showToast('头像更新失败，请重试');
+    }
+  },
+
+  // 昵称输入变化
+  onNicknameChange(e: any) {
+    const nickname = e.detail.value;
+    this.setData({
+      'userInfo.nickname': nickname
+    });
+  },
+
+  // 昵称输入失焦
+  async onNicknameBlur(e: any) {
+    const nickname = e.detail.value.trim();
+    if (!nickname) {
+      this.showToast('昵称不能为空');
+      return;
+    }
+
+    if (nickname === this.data.userInfo?.nickname) {
+      return; // 昵称没有变化
+    }
+
+    try {
+      // 更新用户昵称
+      const result = await cloudService.updateUserProfile(
+        nickname,
+        this.data.userInfo?.avatar || ''
+      );
+      
+      if (result.success && result.userInfo) {
+        this.setData({
+          userInfo: result.userInfo
+        });
+        this.showToast('昵称更新成功');
+      } else {
+        this.showToast(result.error || '昵称更新失败');
+      }
+    } catch (error) {
+      console.error('更新昵称失败:', error);
+      this.showToast('昵称更新失败，请重试');
+    }
   },
 
   // 点击菜单项

@@ -1,5 +1,6 @@
 // 首页
 import { HomePageData, Artwork } from '../../types/index';
+import { cloudService } from '../../utils/cloudService';
 
 Page<HomePageData, any>({
   data: {
@@ -44,26 +45,60 @@ Page<HomePageData, any>({
 
     try {
       const page = refresh ? 1 : this.data.currentPage;
-      const artworks = await this.fetchArtworks(page);
       
-      this.setData({
-        artworks: refresh ? artworks : [...this.data.artworks, ...artworks],
-        currentPage: page,
-        hasMore: artworks.length >= 10, // 假设每页10条
-        loading: false,
-        refreshing: false
-      });
+      // 尝试从云数据库加载作品
+      const result = await cloudService.getAllArtworks(page, 10);
+      
+      if (result.success && result.data) {
+        const artworks = result.data;
+        this.setData({
+          artworks: refresh ? artworks : [...this.data.artworks, ...artworks],
+          currentPage: page,
+          hasMore: result.count === 10, // 如果返回10条，可能还有更多
+          loading: false,
+          refreshing: false
+        });
+      } else {
+        // 如果云开发失败，使用模拟数据作为备选
+        console.warn('云开发获取作品失败，使用模拟数据:', result.error);
+        const artworks = await this.fetchArtworks(page);
+        this.setData({
+          artworks: refresh ? artworks : [...this.data.artworks, ...artworks],
+          currentPage: page,
+          hasMore: artworks.length >= 10,
+          loading: false,
+          refreshing: false
+        });
+      }
 
       if (refresh) {
         wx.stopPullDownRefresh();
       }
     } catch (error) {
       console.error('加载作品失败:', error);
-      this.setData({
-        loading: false,
-        refreshing: false
-      });
-      this.showToast('加载失败，请重试');
+      // 使用模拟数据作为备选
+      try {
+        const page = refresh ? 1 : this.data.currentPage;
+        const artworks = await this.fetchArtworks(page);
+        this.setData({
+          artworks: refresh ? artworks : [...this.data.artworks, ...artworks],
+          currentPage: page,
+          hasMore: artworks.length >= 10,
+          loading: false,
+          refreshing: false
+        });
+        
+        if (refresh) {
+          wx.stopPullDownRefresh();
+        }
+      } catch (fallbackError) {
+        console.error('备选方案也失败:', fallbackError);
+        this.setData({
+          loading: false,
+          refreshing: false
+        });
+        this.showToast('加载失败，请重试');
+      }
     }
   },
 

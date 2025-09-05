@@ -8,6 +8,8 @@ App<IAppOption>({
   } as GlobalData,
 
   onLaunch() {
+    // 初始化云开发
+    this.initCloud();
     // 初始化应用
     this.initApp();
   },
@@ -19,6 +21,21 @@ App<IAppOption>({
 
   onHide() {
     // 应用隐藏时的处理
+  },
+
+  // 初始化云开发
+  initCloud() {
+    if (!wx.cloud) {
+      console.error('请使用 2.2.3 或以上的基础库以使用云能力');
+      return;
+    }
+    
+    wx.cloud.init({
+      env: 'zou-cloud1-4gee2jb2b028dcdc', // 云开发环境ID
+      traceUser: true, // 记录用户访问
+    });
+    
+    console.log('云开发初始化成功');
   },
 
   // 初始化应用
