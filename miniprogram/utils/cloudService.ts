@@ -265,11 +265,6 @@ export class CloudService {
       const fileExtension = localPath.split('.').pop() || 'jpg';
       const cloudPath = `avatars/${userId}.${fileExtension}`;
       
-      console.log('上传头像到云存储:', {
-        localPath,
-        cloudPath,
-        userId
-      });
 
       // 上传文件到云存储
       const uploadResult = await wx.cloud.uploadFile({
@@ -277,7 +272,6 @@ export class CloudService {
         filePath: localPath
       });
 
-      console.log('头像上传结果:', uploadResult);
 
       if (uploadResult.fileID) {
         // 获取文件的临时访问链接
@@ -327,13 +321,11 @@ export class CloudService {
           fileList: [cloudPath]
         }).catch(() => {
           // 文件不存在时忽略错误
-          console.log(`头像文件不存在: ${cloudPath}`);
           return { fileList: [] };
         });
       });
 
       const results = await Promise.all(deletePromises);
-      console.log('删除头像结果:', results);
 
       return {
         success: true,

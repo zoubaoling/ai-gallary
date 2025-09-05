@@ -11,10 +11,6 @@ cloud.init({
 exports.main = async (event, context) => {
   const { imageUrl, fileName } = event;
   
-  console.log('下载图片云函数调用:', {
-    imageUrl: imageUrl ? imageUrl.substring(0, 100) + '...' : null,
-    fileName
-  });
 
   try {
     if (!imageUrl) {
@@ -34,21 +30,16 @@ exports.main = async (event, context) => {
       }
     }
 
-    console.log('最终文件名:', finalFileName);
 
     // 下载图片
-    console.log('开始下载图片...');
     const imageBuffer = await downloadImageFromUrl(imageUrl);
-    console.log('图片下载完成，大小:', imageBuffer.length, 'bytes');
 
     // 上传到云存储
-    console.log('开始上传到云存储...');
     const uploadResult = await cloud.uploadFile({
       cloudPath: finalFileName,
       fileContent: imageBuffer
     });
 
-    console.log('云存储上传结果:', uploadResult);
 
     if (uploadResult.fileID) {
       // 获取临时访问链接
@@ -56,11 +47,9 @@ exports.main = async (event, context) => {
         fileList: [uploadResult.fileID]
       });
 
-      console.log('获取临时访问链接结果:', tempFileURL);
 
       if (tempFileURL.fileList && tempFileURL.fileList.length > 0) {
         const cloudUrl = tempFileURL.fileList[0].tempFileURL;
-        console.log('云存储访问链接:', cloudUrl);
 
         return {
           success: true,
@@ -103,15 +92,8 @@ async function downloadImageFromUrl(imageUrl) {
         }
       };
 
-      console.log('发起图片下载请求:', {
-        hostname: options.hostname,
-        port: options.port,
-        path: options.path
-      });
 
       const req = httpModule.request(options, (res) => {
-        console.log('图片下载响应状态:', res.statusCode);
-        console.log('图片下载响应头:', res.headers);
 
         if (res.statusCode !== 200) {
           reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
@@ -125,7 +107,6 @@ async function downloadImageFromUrl(imageUrl) {
 
         res.on('end', () => {
           const buffer = Buffer.concat(chunks);
-          console.log('图片下载完成，大小:', buffer.length, 'bytes');
           resolve(buffer);
         });
 

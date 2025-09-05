@@ -35,7 +35,6 @@ App<IAppOption>({
       traceUser: true, // 记录用户访问
     });
     
-    console.log('云开发初始化成功');
   },
 
   // 初始化应用

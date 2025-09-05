@@ -12,15 +12,6 @@ const DASHSCOPE_BASE_URL = 'https://dashscope.aliyuncs.com/api/v1';
 exports.main = async (event, context) => {
   const { action, taskId, prompt, negativePrompt, size, n, seed } = event;
   
-  console.log('通义万相文生图云函数调用:', {
-    action,
-    taskId,
-    prompt: prompt ? prompt.substring(0, 50) + '...' : null,
-    negativePrompt: negativePrompt ? negativePrompt.substring(0, 50) + '...' : null,
-    size,
-    n,
-    seed
-  });
 
   try {
     if (!DASHSCOPE_API_KEY) {
@@ -75,15 +66,8 @@ async function createImageTask(prompt, negativePrompt, size = '1024*1024', n = 1
       requestBody.parameters.seed = seed;
     }
 
-    console.log('创建图像生成任务请求:', {
-      model: requestBody.model,
-      prompt: requestBody.input.prompt.substring(0, 100) + '...',
-      size: requestBody.parameters.size,
-      n: requestBody.parameters.n
-    });
 
     // 调用阿里云通义万相API
-    console.log('调用httpRequest云函数...');
     const response = await cloud.callFunction({
       name: 'httpRequest',
       data: {
@@ -98,11 +82,9 @@ async function createImageTask(prompt, negativePrompt, size = '1024*1024', n = 1
       }
     });
 
-    console.log('httpRequest云函数响应:', response);
 
     if (response.result && response.result.success && response.result.data) {
       const apiResponse = response.result.data;
-      console.log('通义万相API响应数据:', apiResponse);
       
       if (apiResponse.output) {
         return {
@@ -133,10 +115,8 @@ async function queryTaskResult(taskId) {
       throw new Error('任务ID不能为空');
     }
 
-    console.log('查询任务结果:', taskId);
 
     // 调用阿里云通义万相API查询任务结果
-    console.log('调用httpRequest云函数查询任务结果...');
     const response = await cloud.callFunction({
       name: 'httpRequest',
       data: {
@@ -148,11 +128,9 @@ async function queryTaskResult(taskId) {
       }
     });
 
-    console.log('httpRequest云函数查询响应:', response);
 
     if (response.result && response.result.success && response.result.data) {
       const apiResponse = response.result.data;
-      console.log('通义万相API查询响应数据:', apiResponse);
       
       if (apiResponse.output) {
         const output = apiResponse.output;

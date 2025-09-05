@@ -206,7 +206,6 @@ Page<ProfilePageData, any>({
   // 点击画廊作品
   onGalleryItemTap(e: any) {
     const artwork = e.currentTarget.dataset.artwork as Artwork;
-    console.log('点击作品:', artwork);
     
     // 跳转到作品详情页（如果有的话）
     // wx.navigateTo({
@@ -346,7 +345,6 @@ Page<ProfilePageData, any>({
   async onChooseAvatar(e: any) {
     try {
       const { avatarUrl } = e.detail;
-      console.log('选择头像:', avatarUrl);
       
       this.showToast('正在上传头像...');
       
@@ -431,12 +429,10 @@ Page<ProfilePageData, any>({
   // 昵称输入框聚焦
   onNicknameFocus() {
     // 可以在这里添加一些聚焦时的逻辑
-    console.log('昵称输入框获得焦点');
   },
 
   // 昵称输入框失焦
   onNicknameBlur() {
-    console.log('昵称输入框失去焦点');
   },
 
   // 确认修改昵称

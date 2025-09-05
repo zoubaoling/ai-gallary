@@ -11,12 +11,6 @@ cloud.init({
 exports.main = async (event, context) => {
   const { url, method = 'GET', headers = {}, data } = event;
   
-  console.log('HTTP请求云函数调用:', {
-    url,
-    method,
-    headers: Object.keys(headers),
-    hasData: !!data
-  });
 
   try {
     if (!url) {
@@ -47,13 +41,6 @@ exports.main = async (event, context) => {
       options.headers['Content-Length'] = Buffer.byteLength(requestBody);
     }
 
-    console.log('发起HTTP请求:', {
-      hostname: options.hostname,
-      port: options.port,
-      path: options.path,
-      method: options.method,
-      headers: Object.keys(options.headers)
-    });
 
     // 发起HTTP请求
     const result = await new Promise((resolve, reject) => {
@@ -65,10 +52,6 @@ exports.main = async (event, context) => {
         });
         
         res.on('end', () => {
-          console.log('HTTP请求成功:', {
-            statusCode: res.statusCode,
-            headers: res.headers
-          });
           
           try {
             const parsedData = JSON.parse(responseData);

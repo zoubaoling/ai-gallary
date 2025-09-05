@@ -32,10 +32,7 @@ exports.main = async (event, context) => {
     // 3. 验证fileID
     let finalFileID = fileID;
     if (!finalFileID) {
-      console.warn('未提供fileID，无法构造正确的fileID，请确保传递正确的fileID');
       // 不再尝试构造fileID，因为格式复杂且容易出错
-    } else {
-      console.log('使用提供的fileID:', finalFileID);
     }
 
     // 3. 查询用户信息
@@ -51,12 +48,6 @@ exports.main = async (event, context) => {
     }
 
     const userInfo = userResult.data[0];
-    
-    console.log('用户信息:', {
-      nickname: userInfo.nickname,
-      avatar: userInfo.avatar,
-      avatarFileID: userInfo.avatarFileID
-    });
 
     // 4. 从临时URL中提取云存储路径（作为备用）
     let cloudPath = imageUrl;

@@ -69,20 +69,15 @@ Page<HomePageData, any>({
           
           // 优先使用fileID获取临时URL
           if (image.fileID) {
-            console.log('使用fileID获取临时URL:', image.fileID);
             try {
               const tempFileResult = await wx.cloud.getTempFileURL({
                 fileList: [image.fileID]
               });
-              console.log('getTempFileURL结果:', tempFileResult);
               if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
                 imageUrl = tempFileResult.fileList[0].tempFileURL;
-                console.log('成功获取临时URL:', imageUrl);
-              } else {
-                console.warn('使用fileID获取临时URL为空:', image.fileID, '结果:', tempFileResult);
               }
             } catch (error) {
-              console.error('使用fileID获取临时URL失败:', error, 'fileID:', image.fileID);
+              console.error('使用fileID获取临时URL失败:', error);
             }
           }
           
@@ -125,30 +120,17 @@ Page<HomePageData, any>({
           
           // 处理用户头像的临时URL
           let authorAvatar = image.author.avatar;
-          console.log('处理用户头像:', {
-            nickname: image.author.nickname,
-            originalAvatar: image.author.avatar,
-            avatarFileID: image.author.avatarFileID
-          });
-          
           if (image.author.avatarFileID) {
-            console.log('使用avatarFileID获取临时URL:', image.author.avatarFileID);
             try {
               const avatarTempResult = await wx.cloud.getTempFileURL({
                 fileList: [image.author.avatarFileID]
               });
-              console.log('头像getTempFileURL结果:', avatarTempResult);
               if (avatarTempResult.fileList && avatarTempResult.fileList[0] && avatarTempResult.fileList[0].tempFileURL) {
                 authorAvatar = avatarTempResult.fileList[0].tempFileURL;
-                console.log('成功获取头像临时URL:', authorAvatar);
-              } else {
-                console.warn('使用avatarFileID获取临时URL为空:', image.author.avatarFileID, '结果:', avatarTempResult);
               }
             } catch (error) {
-              console.error('使用avatarFileID获取临时URL失败:', error, 'avatarFileID:', image.author.avatarFileID);
+              console.error('使用avatarFileID获取临时URL失败:', error);
             }
-          } else {
-            console.log('用户没有avatarFileID，使用原始头像URL:', authorAvatar);
           }
           
           return {
@@ -220,7 +202,6 @@ Page<HomePageData, any>({
   // 点击作品
   onArtworkTap(e: any) {
     const artwork = e.currentTarget.dataset.artwork as Artwork;
-    console.log('点击作品:', artwork);
     
     // 跳转到作品详情页（如果有的话）
     // wx.navigateTo({
@@ -230,12 +211,10 @@ Page<HomePageData, any>({
 
   // 点击创建按钮
   onCreateTap() {
-    console.log('悬浮按钮被点击了');
     try {
       wx.navigateTo({
         url: '/pages/create/create',
         success: () => {
-          console.log('页面跳转成功');
         },
         fail: (error) => {
           console.error('页面跳转失败:', error);

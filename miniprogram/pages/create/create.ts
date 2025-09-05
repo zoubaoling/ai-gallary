@@ -63,7 +63,6 @@ Page<CreatePageData, any>({
   } as CreatePageData,
 
   onLoad() {
-    console.log('create页面加载成功');
     // 页面加载时的初始化
   },
 
@@ -238,12 +237,6 @@ Page<CreatePageData, any>({
               const cloudUrl = downloadResult.data.cloudUrl;
               const fileID = downloadResult.data.fileID;
               
-              console.log('下载图片成功:', {
-                cloudUrl: cloudUrl,
-                fileID: fileID,
-                fileName: fileName
-              });
-              
               this.setData({
                 generatedImage: cloudUrl,
                 generatedFileID: fileID, // 存储fileID
@@ -382,12 +375,6 @@ Page<CreatePageData, any>({
   // 发布到画廊
   async publishToGallery(): Promise<void> {
     try {
-      console.log('发布图片数据:', {
-        imageUrl: this.data.generatedImage,
-        fileID: this.data.generatedFileID,
-        prompt: this.data.prompt
-      });
-      
       // 调用云函数发布图片
       const result = await wx.cloud.callFunction({
         name: 'publishImage',
@@ -404,7 +391,6 @@ Page<CreatePageData, any>({
         throw new Error((result.result as any)?.error || '发布失败');
       }
 
-      console.log('作品发布成功:', (result.result as any).data);
     } catch (error) {
       console.error('发布作品失败:', error);
       throw error;
