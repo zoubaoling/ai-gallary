@@ -1,5 +1,10 @@
 <!--首页-->
-<view class="home-container">
+<scroll-view 
+  class="home-container"
+  scroll-y="true"
+  bindscrolltolower="onLoadMore"
+  lower-threshold="100"
+>
   <!-- 图片网格 -->
   <view class="artwork-grid">
     <view 
@@ -9,25 +14,35 @@
       bindtap="onArtworkTap"
       data-artwork="{{item}}"
     >
-      <t-image
-        class="artwork-image"
-        src="{{item.imageUrl}}"
-        mode="aspectFill"
-        loading="lazy"
-        error="图片加载失败"
-        bind:error="onImageError"
-      />
-      <view class="artwork-info">
-        <view class="artwork-title">{{item.title}}</view>
-        <view class="artwork-meta">
+      <!-- 图片区域 -->
+      <view class="image-container">
+        <t-image
+          class="artwork-image"
+          src="{{item.imageUrl}}"
+          mode="aspectFill"
+          loading="lazy"
+          error="图片加载失败"
+          bind:error="onImageError"
+        />
+      </view>
+      
+      <!-- 提示词区域 -->
+      <view class="prompt-section" wx:if="{{item.prompt}}">
+        <text class="prompt-text">{{item.prompt}}</text>
+      </view>
+      
+      <!-- 用户信息区域 -->
+      <view class="user-info">
+        <view class="avatar-container">
           <t-avatar 
-            class="author-avatar"
+            class="user-avatar"
             size="small"
-            image="{{item.author.avatar}}"
+            shape="circle"
+            image="{{item.author.avatar || '/assets/icons/user-avatar.png'}}"
+            bind:error="onAvatarError"
           />
-          <text class="author-name">{{item.author.nickname}}</text>
-          <text class="create-time">{{item.createTime}}</text>
         </view>
+        <text class="user-nickname">{{item.author.nickname}}</text>
       </view>
     </view>
   </view>
@@ -60,7 +75,7 @@
       开始创作
     </t-button>
   </view>
-</view>
+</scroll-view>
 
 <!-- 悬浮创建按钮 -->
 <t-button 

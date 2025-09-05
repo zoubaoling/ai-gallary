@@ -60,33 +60,59 @@
       <text class="section-subtitle">管理你的创作作品</text>
     </view>
     
-    <view class="gallery-grid" wx:if="{{myArtworks.length > 0}}">
-      <view 
-        class="gallery-item" 
-        wx:for="{{myArtworks}}" 
-        wx:key="id"
-        bindtap="onGalleryItemTap"
-        data-artwork="{{item}}"
-      >
-        <t-image
-          class="gallery-image"
-          src="{{item.imageUrl}}"
-          mode="aspectFill"
-          loading="lazy"
-        />
-        <view class="gallery-overlay">
-          <text class="gallery-title">{{item.title}}</text>
+    <scroll-view 
+      class="gallery-scroll"
+      scroll-y="true"
+      bindscrolltolower="onLoadMore"
+      lower-threshold="100"
+      wx:if="{{myArtworks.length > 0}}"
+    >
+      <view class="gallery-grid">
+        <view 
+          class="gallery-item" 
+          wx:for="{{myArtworks}}" 
+          wx:key="id"
+          bindtap="onGalleryItemTap"
+          data-artwork="{{item}}"
+        >
+          <!-- 图片区域 -->
+          <view class="image-container">
+            <t-image
+              class="gallery-image"
+              src="{{item.imageUrl}}"
+              mode="aspectFill"
+              loading="lazy"
+              error="图片加载失败"
+              bind:error="onImageError"
+            />
+          </view>
+          
+          <!-- 提示词区域 -->
+          <view class="prompt-section" wx:if="{{item.prompt}}">
+            <text class="prompt-text">{{item.prompt}}</text>
+          </view>
+        </view>
+        
+        <!-- 添加新作品按钮 -->
+        <view class="add-item" bindtap="onCreateTap">
+          <view class="add-icon">
+            <text class="add-text">+</text>
+          </view>
+          <text class="add-label">创作新作品</text>
         </view>
       </view>
       
-      <!-- 添加新作品按钮 -->
-      <view class="add-item" bindtap="onCreateTap">
-        <view class="add-icon">
-          <text class="add-text">+</text>
-        </view>
-        <text class="add-label">创作新作品</text>
+      <!-- 加载更多 -->
+      <view class="load-more" wx:if="{{loading}}">
+        <t-loading theme="circular" size="40rpx" />
+        <text class="load-text">加载更多...</text>
       </view>
-    </view>
+
+      <!-- 没有更多数据 -->
+      <view class="no-more" wx:if="{{!hasMore && myArtworks.length > 0}}">
+        <text>没有更多作品了</text>
+      </view>
+    </scroll-view>
     
     <!-- 空状态 -->
     <view class="empty-gallery" wx:else>

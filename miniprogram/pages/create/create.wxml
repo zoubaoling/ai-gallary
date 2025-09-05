@@ -47,19 +47,29 @@
     class="generate-btn"
     theme="primary"
     size="large"
-    loading="{{generating}}"
+    loading="{{isGenerating}}"
     disabled="{{!canGenerate}}"
     bind:tap="onGenerateTap"
   >
-    {{generating ? '生成中...' : '生成图片'}}
+    {{isGenerating ? '生成中...' : '生成图片'}}
   </t-button>
 
+  <!-- 生成进度显示 -->
+  <view class="progress-container" wx:if="{{isGenerating}}">
+    <t-progress 
+      percentage="{{generationProgress}}" 
+      theme="line" 
+      size="medium"
+    />
+    <text class="progress-text">{{taskStatus}}</text>
+  </view>
+
   <!-- 图片展示区域 -->
-  <view class="result-section" wx:if="{{generatedImage || generating}}">
+  <view class="result-section" wx:if="{{generatedImage || isGenerating}}">
     <view class="section-title">生成的图片</view>
     
     <view class="image-container">
-      <view class="image-placeholder" wx:if="{{generating}}">
+      <view class="image-placeholder" wx:if="{{isGenerating}}">
         <t-loading theme="circular" size="60rpx" />
         <text class="loading-text">AI正在创作中，请稍候...</text>
       </view>
@@ -76,7 +86,7 @@
     
     <!-- 发布按钮 -->
     <t-button
-      wx:if="{{generatedImage && !generating}}"
+      wx:if="{{generatedImage && !isGenerating}}"
       class="publish-btn"
       theme="success"
       size="large"

@@ -3,7 +3,8 @@
   padding: 20rpx;
   padding-bottom: 120rpx;
   background-color: #F3F3F3;
-  min-height: 100vh;
+  height: 100vh;
+  box-sizing: border-box;
 }
 
 /* 图片网格 */
@@ -15,57 +16,81 @@
 
 .artwork-item {
   background: white;
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   overflow: hidden;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .artwork-item:active {
   transform: scale(0.98);
 }
 
-.artwork-image {
+/* 图片容器 */
+.image-container {
+  position: relative;
   width: 100%;
-  height: 300rpx;
-  border-radius: 16rpx 16rpx 0 0;
-}
-
-.artwork-info {
-  padding: 20rpx;
-}
-
-.artwork-title {
-  font-size: 28rpx;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 16rpx;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  height: 280rpx;
   overflow: hidden;
 }
 
-.artwork-meta {
+.artwork-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx 12rpx 0 0;
+}
+
+/* 提示词区域 */
+.prompt-section {
+  padding: 12rpx 16rpx 8rpx;
+  background: white;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.prompt-text {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+}
+
+/* 用户信息 */
+.user-info {
   display: flex;
   align-items: center;
   gap: 12rpx;
+  padding: 12rpx 16rpx;
+  background: white;
+  border-radius: 0 0 12rpx 12rpx;
+  min-height: 60rpx;
 }
 
-.author-avatar {
+/* 头像容器 */
+.avatar-container {
+  position: relative;
   flex-shrink: 0;
 }
 
-.author-name {
-  font-size: 24rpx;
-  color: #666;
+.user-avatar {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.user-nickname {
+  font-size: 26rpx;
+  color: #333;
   flex: 1;
-}
-
-.create-time {
-  font-size: 22rpx;
-  color: #999;
-  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 /* 加载更多 */
@@ -135,7 +160,29 @@
     gap: 16rpx;
   }
   
-  .artwork-image {
+  .image-container {
     height: 400rpx;
+  }
+  
+  .prompt-section {
+    padding: 16rpx 20rpx 12rpx;
+  }
+  
+  .prompt-text {
+    font-size: 26rpx;
+  }
+  
+  .user-info {
+    padding: 16rpx 20rpx;
+    min-height: 70rpx;
+  }
+  
+  .user-avatar {
+    width: 44rpx;
+    height: 44rpx;
+  }
+  
+  .user-nickname {
+    font-size: 28rpx;
   }
 }

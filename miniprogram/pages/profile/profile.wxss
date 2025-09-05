@@ -261,42 +261,75 @@
   color: #666;
 }
 
+.gallery-scroll {
+  height: 60vh;
+  box-sizing: border-box;
+}
+
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20rpx;
+  padding: 0 20rpx;
 }
 
 .gallery-item {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 12rpx;
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  background: #f5f5f5;
+  transition: all 0.3s ease;
+}
+
+.gallery-item:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.12);
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 300rpx;
+  overflow: hidden;
 }
 
 .gallery-image {
   width: 100%;
   height: 100%;
+  border-radius: 16rpx 16rpx 0 0;
 }
 
-.gallery-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-  padding: 20rpx;
+/* 提示词区域 */
+.prompt-section {
+  padding: 12rpx 16rpx 8rpx;
+  background: white;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
-.gallery-title {
-  color: white;
+.prompt-text {
   font-size: 24rpx;
-  font-weight: 500;
+  color: #666;
+  line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+}
+
+/* 加载更多和没有更多数据 */
+.load-more, .no-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 40rpx;
+  color: #666;
+}
+
+.load-text {
+  font-size: 28rpx;
 }
 
 /* 添加新作品按钮 */
@@ -389,7 +422,19 @@
 /* 响应式设计 */
 @media (max-width: 750rpx) {
   .gallery-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 16rpx;
+  }
+  
+  .image-container {
+    height: 400rpx;
+  }
+  
+  .prompt-section {
+    padding: 16rpx 20rpx 12rpx;
+  }
+  
+  .prompt-text {
+    font-size: 26rpx;
   }
 }

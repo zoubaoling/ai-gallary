@@ -72,6 +72,12 @@ export interface CreatePageData {
   generatedImage: string | null;
   generating: boolean;
   publishing: boolean;
+  canGenerate: boolean;
+  taskId: string | null;
+  taskStatus: string | null;
+  isGenerating: boolean;
+  generationProgress: number;
+  currentSeed: number | null;
   artStyles: ArtStyle[];
   inspirationTips: InspirationTip[];
 }

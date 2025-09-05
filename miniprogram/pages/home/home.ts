@@ -34,6 +34,13 @@ Page<HomePageData, any>({
     }
   },
 
+  // 滚动到底部加载更多
+  onLoadMore() {
+    if (this.data.hasMore && !this.data.loading) {
+      this.loadMoreArtworks();
+    }
+  },
+
   // 加载作品列表
   async loadArtworks(refresh = false) {
     if (this.data.loading) return;
@@ -230,6 +237,13 @@ Page<HomePageData, any>({
   // 图片加载错误
   onImageError(e: any) {
     console.error('图片加载失败:', e);
+  },
+
+  // 头像加载错误
+  onAvatarError(e: any) {
+    console.error('头像加载失败:', e);
+    // 头像加载失败时，t-avatar组件会自动使用默认图片
+    // 默认图片路径已在WXML中设置：/assets/icons/user-avatar.png
   },
 
   // 显示Toast

@@ -309,10 +309,10 @@ Page<CreatePageData, any>({
       
       this.showToast('发布成功！');
       
-      // 延迟跳转到我的页面
+      // 延迟跳转到首页
       setTimeout(() => {
         wx.switchTab({
-          url: '/pages/profile/profile'
+          url: '/pages/home/home'
         });
       }, 1500);
       

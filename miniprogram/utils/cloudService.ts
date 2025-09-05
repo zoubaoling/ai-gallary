@@ -369,6 +369,135 @@ export class CloudService {
       };
     }
   }
+
+  // 创建AI图片生成任务
+  async createImageTask(prompt: string, negativePrompt?: string, size?: string, n?: number, seed?: number): Promise<CloudDBResult> {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'qwenImageGeneration',
+        data: {
+          action: 'create',
+          prompt: prompt,
+          negativePrompt: negativePrompt || '',
+          size: size || '1024*1024',
+          n: n || 1,
+          seed: seed
+        }
+      });
+
+      if (typeof result.result === 'object' && (result.result as any).success) {
+        return {
+          success: true,
+          data: (result.result as any).data
+        };
+      } else {
+        return {
+          success: false,
+          error: (result.result as any)?.error || '创建图片生成任务失败'
+        };
+      }
+    } catch (error) {
+      console.error('创建图片生成任务失败:', error);
+      return {
+        success: false,
+        error: '创建图片生成任务失败'
+      };
+    }
+  }
+
+  // 查询AI图片生成任务结果
+  async queryImageTaskResult(taskId: string): Promise<CloudDBResult> {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'qwenImageGeneration',
+        data: {
+          action: 'query',
+          taskId: taskId
+        }
+      });
+
+      if (typeof result.result === 'object' && (result.result as any).success) {
+        return {
+          success: true,
+          data: (result.result as any).data
+        };
+      } else {
+        return {
+          success: false,
+          error: (result.result as any)?.error || '查询图片生成任务失败'
+        };
+      }
+    } catch (error) {
+      console.error('查询图片生成任务失败:', error);
+      return {
+        success: false,
+        error: '查询图片生成任务失败'
+      };
+    }
+  }
+
+  // 重新生成图片
+  async regenerateImage(taskId: string, seed?: number): Promise<CloudDBResult> {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'qwenImageGeneration',
+        data: {
+          action: 'regenerate',
+          taskId: taskId,
+          seed: seed
+        }
+      });
+
+      if (typeof result.result === 'object' && (result.result as any).success) {
+        return {
+          success: true,
+          data: (result.result as any).data
+        };
+      } else {
+        return {
+          success: false,
+          error: (result.result as any)?.error || '重新生成图片失败'
+        };
+      }
+    } catch (error) {
+      console.error('重新生成图片失败:', error);
+      return {
+        success: false,
+        error: '重新生成图片失败'
+      };
+    }
+  }
+
+  // 下载外部图片到云存储
+  async downloadImageToCloud(imageUrl: string, fileName?: string): Promise<CloudDBResult> {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'downloadImage',
+        data: {
+          imageUrl: imageUrl,
+          fileName: fileName
+        }
+      });
+
+      if (typeof result.result === 'object' && (result.result as any).success) {
+        return {
+          success: true,
+          data: (result.result as any).data
+        };
+      } else {
+        return {
+          success: false,
+          error: (result.result as any)?.error || '下载图片到云存储失败'
+        };
+      }
+    } catch (error) {
+      console.error('下载图片到云存储失败:', error);
+      return {
+        success: false,
+        error: '下载图片到云存储失败'
+      };
+    }
+  }
 }
 
 // 导出单例实例

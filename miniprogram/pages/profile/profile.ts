@@ -72,26 +72,47 @@ Page<ProfilePageData, any>({
     if (this.data.loading || !this.data.userInfo) return;
 
     this.setData({
-      loading: true
+      loading: true,
+      currentPage: 1,
+      hasMore: true
     });
 
     try {
-      // 使用云开发获取用户作品
-      const result = await cloudService.getUserArtworks(
-        this.data.userInfo.openid || this.data.userInfo.id,
-        this.data.currentPage,
-        10
-      );
+      // 调用云函数获取用户发布的图片
+      const result = await wx.cloud.callFunction({
+        name: 'getUserImages',
+        data: {
+          page: 1,
+          pageSize: 6
+        }
+      });
 
-      if (result.success && result.data) {
+      if (result.result && (result.result as any).success && (result.result as any).data) {
+        const { images, hasMore } = (result.result as any).data;
+        
+        // 转换数据格式以匹配现有的 Artwork 类型
+        const artworks = images.map((image: any) => ({
+          id: image._id,
+          title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
+          description: image.prompt,
+          imageUrl: image.imageUrl,
+          prompt: image.prompt,
+          negativePrompt: image.negativePrompt,
+          style: image.style,
+          author: image.author,
+          createTime: this.formatTime(image.createTime),
+          likeCount: image.likeCount,
+          isLiked: image.isLiked
+        }));
+
         this.setData({
-          myArtworks: result.data,
+          myArtworks: artworks,
           loading: false,
-          hasMore: result.count === 10 // 如果返回10条，可能还有更多
+          hasMore: hasMore
         });
       } else {
-        // 如果云开发失败，使用模拟数据作为备选
-        console.warn('云开发获取作品失败，使用模拟数据:', result.error);
+        // 如果云函数失败，使用模拟数据作为备选
+        console.warn('云函数获取作品失败，使用模拟数据:', (result.result as any)?.error);
         const artworks = await this.fetchMyArtworks();
         this.setData({
           myArtworks: artworks,
@@ -211,6 +232,99 @@ Page<ProfilePageData, any>({
     wx.navigateTo({
       url: '/pages/create/create'
     });
+  },
+
+  // 滚动加载更多
+  onLoadMore() {
+    if (this.data.loading || !this.data.hasMore) {
+      return;
+    }
+    this.loadMoreArtworks();
+  },
+
+  // 加载更多作品
+  async loadMoreArtworks() {
+    if (this.data.loading || !this.data.hasMore) {
+      return;
+    }
+
+    this.setData({ loading: true });
+
+    try {
+      const nextPage = this.data.currentPage + 1;
+      
+      // 调用云函数获取更多用户发布的图片
+      const result = await wx.cloud.callFunction({
+        name: 'getUserImages',
+        data: {
+          page: nextPage,
+          pageSize: 6
+        }
+      });
+
+      if (result.result && (result.result as any).success && (result.result as any).data) {
+        const { images, hasMore } = (result.result as any).data;
+        
+        // 转换数据格式以匹配现有的 Artwork 类型
+        const newArtworks = images.map((image: any) => ({
+          id: image._id,
+          title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
+          description: image.prompt,
+          imageUrl: image.imageUrl,
+          prompt: image.prompt,
+          negativePrompt: image.negativePrompt,
+          style: image.style,
+          author: image.author,
+          createTime: this.formatTime(image.createTime),
+          likeCount: image.likeCount,
+          isLiked: image.isLiked
+        }));
+
+        this.setData({
+          myArtworks: [...this.data.myArtworks, ...newArtworks],
+          currentPage: nextPage,
+          hasMore: hasMore,
+          loading: false
+        });
+      } else {
+        // 如果云函数失败，使用模拟数据
+        const mockArtworks = this.getMockArtworks();
+        const startIndex = (nextPage - 1) * 6;
+        const endIndex = startIndex + 6;
+        const newArtworks = mockArtworks.slice(startIndex, endIndex);
+
+        if (newArtworks.length === 0) {
+          this.setData({ 
+            hasMore: false,
+            loading: false 
+          });
+          return;
+        }
+
+        this.setData({
+          myArtworks: [...this.data.myArtworks, ...newArtworks],
+          currentPage: nextPage,
+          loading: false
+        });
+      }
+
+    } catch (error) {
+      console.error('加载更多作品失败:', error);
+      this.setData({ loading: false });
+      this.showToast('加载失败，请重试');
+    }
+  },
+
+  // 图片加载错误
+  onImageError(e: any) {
+    console.error('图片加载失败:', e);
+  },
+
+  // 头像加载错误
+  onAvatarError(e: any) {
+    console.error('头像加载失败:', e);
+    // 头像加载失败时，t-avatar组件会自动使用默认图片
+    // 默认图片路径已在WXML中设置：/assets/icons/user-avatar.png
   },
 
   // 选择头像
@@ -383,6 +497,27 @@ Page<ProfilePageData, any>({
         break;
       default:
         break;
+    }
+  },
+
+  // 格式化时间
+  formatTime(timeString: string): string {
+    const now = new Date();
+    const time = new Date(timeString);
+    const diff = now.getTime() - time.getTime();
+    
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (minutes < 60) {
+      return `${minutes}分钟前`;
+    } else if (hours < 24) {
+      return `${hours}小时前`;
+    } else if (days < 7) {
+      return `${days}天前`;
+    } else {
+      return time.toLocaleDateString();
     }
   },
 
