@@ -10,6 +10,7 @@ Page<CreatePageData, any>({
     generatedImage: null,
     generating: false,
     publishing: false,
+    canGenerate: false,
     artStyles: [
       '写实',
       '动漫',
@@ -63,8 +64,12 @@ Page<CreatePageData, any>({
 
   // 提示词输入变化
   onPromptChange(e: any) {
+    const promptValue = e.detail.value;
+    const canGenerate = promptValue && promptValue.trim().length > 0 && !this.data.generating;
+    
     this.setData({
-      prompt: e.detail.value
+      prompt: promptValue,
+      canGenerate: canGenerate
     });
   },
 
@@ -133,8 +138,10 @@ Page<CreatePageData, any>({
   addStyleToPrompt(style: ArtStyle) {
     const currentPrompt = this.data.prompt;
     if (!currentPrompt.includes(style)) {
+      const newPrompt = currentPrompt + '，' + style + '风格';
       this.setData({
-        prompt: currentPrompt + '，' + style + '风格'
+        prompt: newPrompt,
+        canGenerate: newPrompt && newPrompt.trim().length > 0 && !this.data.generating
       });
     }
   },
@@ -148,7 +155,8 @@ Page<CreatePageData, any>({
 
     this.setData({
       generating: true,
-      generatedImage: null
+      generatedImage: null,
+      canGenerate: false
     });
 
     try {
@@ -163,7 +171,8 @@ Page<CreatePageData, any>({
       if (response.success && response.imageUrl) {
         this.setData({
           generatedImage: response.imageUrl,
-          generating: false
+          generating: false,
+          canGenerate: this.data.prompt && this.data.prompt.trim().length > 0
         });
         this.showToast('图片生成成功！');
       } else {
@@ -172,7 +181,8 @@ Page<CreatePageData, any>({
     } catch (error) {
       console.error('生成图片失败:', error);
       this.setData({
-        generating: false
+        generating: false,
+        canGenerate: this.data.prompt && this.data.prompt.trim().length > 0
       });
       this.showToast('生成失败，请重试');
     }
@@ -277,7 +287,8 @@ Page<CreatePageData, any>({
   onInspirationTap(e: any) {
     const tip = e.currentTarget.dataset.tip as InspirationTip;
     this.setData({
-      prompt: tip.prompt
+      prompt: tip.prompt,
+      canGenerate: tip.prompt && tip.prompt.trim().length > 0 && !this.data.generating
     });
     this.showToast('已应用灵感提示');
   },

@@ -1,0 +1,14 @@
+{
+  "name": "qwenImageGeneration",
+  "version": "1.0.0",
+  "description": "通义万相文生图云函数",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

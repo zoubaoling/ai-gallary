@@ -48,7 +48,7 @@
     theme="primary"
     size="large"
     loading="{{generating}}"
-    disabled="{{!prompt.trim() || generating}}"
+    disabled="{{!canGenerate}}"
     bind:tap="onGenerateTap"
   >
     {{generating ? '生成中...' : '生成图片'}}
