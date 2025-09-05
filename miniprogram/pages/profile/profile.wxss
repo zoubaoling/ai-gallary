@@ -1,0 +1,231 @@
+/* 我的页面样式 */
+.profile-container {
+  background-color: #F3F3F3;
+  min-height: 100vh;
+}
+
+/* 用户信息区域 */
+.user-info-section {
+  background: white;
+  margin-bottom: 20rpx;
+  padding: 40rpx;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+}
+
+.user-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.user-stats {
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 登录区域 */
+.login-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24rpx;
+}
+
+.default-avatar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.login-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.login-subtitle {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.login-btn {
+  width: 200rpx;
+}
+
+/* 个人画廊区域 */
+.gallery-section {
+  background: white;
+  margin-bottom: 20rpx;
+  padding: 40rpx;
+}
+
+.section-header {
+  margin-bottom: 32rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.section-subtitle {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
+}
+
+.gallery-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12rpx;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.gallery-image {
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 20rpx;
+}
+
+.gallery-title {
+  color: white;
+  font-size: 24rpx;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 添加新作品按钮 */
+.add-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 2rpx dashed #ddd;
+  border-radius: 12rpx;
+  background: #fafafa;
+  transition: all 0.2s ease;
+}
+
+.add-item:active {
+  background: #f0f0f0;
+  border-color: #ccc;
+}
+
+.add-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #0052D9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12rpx;
+}
+
+.add-text {
+  color: white;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.add-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 空状态 */
+.empty-gallery {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 40rpx;
+  text-align: center;
+}
+
+.empty-image {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 32rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 32rpx;
+}
+
+.create-btn {
+  width: 200rpx;
+}
+
+/* 功能菜单 */
+.menu-section {
+  background: white;
+  margin-bottom: 20rpx;
+}
+
+/* 加载状态 */
+.loading-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 40rpx;
+  color: #666;
+}
+
+.loading-text {
+  font-size: 28rpx;
+}
+
+/* 响应式设计 */
+@media (max-width: 750rpx) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16rpx;
+  }
+}

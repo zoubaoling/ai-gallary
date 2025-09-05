@@ -1,0 +1,76 @@
+<!--首页-->
+<view class="home-container">
+  <!-- 图片网格 -->
+  <view class="artwork-grid">
+    <view 
+      class="artwork-item" 
+      wx:for="{{artworks}}" 
+      wx:key="id"
+      bindtap="onArtworkTap"
+      data-artwork="{{item}}"
+    >
+      <t-image
+        class="artwork-image"
+        src="{{item.imageUrl}}"
+        mode="aspectFill"
+        loading="lazy"
+        error="图片加载失败"
+        bind:error="onImageError"
+      />
+      <view class="artwork-info">
+        <view class="artwork-title">{{item.title}}</view>
+        <view class="artwork-meta">
+          <t-avatar 
+            class="author-avatar"
+            size="small"
+            image="{{item.author.avatar}}"
+          />
+          <text class="author-name">{{item.author.nickname}}</text>
+          <text class="create-time">{{item.createTime}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{loading}}">
+    <t-loading theme="circular" size="40rpx" />
+    <text class="load-text">加载更多...</text>
+  </view>
+
+  <!-- 没有更多数据 -->
+  <view class="no-more" wx:if="{{!hasMore && artworks.length > 0}}">
+    <text>没有更多作品了</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{artworks.length === 0 && !loading}}">
+    <t-image
+      class="empty-image"
+      src="/assets/images/empty.png"
+      mode="aspectFit"
+    />
+    <text class="empty-text">暂无作品，快来创作第一幅吧！</text>
+    <t-button 
+      class="create-btn"
+      theme="primary"
+      size="medium"
+      bind:tap="onCreateTap"
+    >
+      开始创作
+    </t-button>
+  </view>
+</view>
+
+<!-- 悬浮创建按钮 -->
+<t-button 
+  class="floating-create-btn"
+  theme="primary"
+  shape="circle"
+  size="large"
+  icon="add"
+  bind:tap="onCreateTap"
+/>
+
+<!-- Toast提示 -->
+<t-toast id="t-toast" />

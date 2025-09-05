@@ -1,0 +1,13 @@
+{
+  "navigationBarTitleText": "AI画廊",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-image": "tdesign-miniprogram/image/image",
+    "t-loading": "tdesign-miniprogram/loading/loading",
+    "t-avatar": "tdesign-miniprogram/avatar/avatar",
+    "t-tag": "tdesign-miniprogram/tag/tag",
+    "t-toast": "tdesign-miniprogram/toast/toast"
+  }
+}

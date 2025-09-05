@@ -1,0 +1,109 @@
+<!--创建图片页面-->
+<view class="create-container">
+  <!-- 提示词输入区域 -->
+  <view class="input-section">
+    <view class="section-title">描述你想要画的图片</view>
+    <t-textarea
+      class="prompt-input"
+      value="{{prompt}}"
+      placeholder="试试描述：主角 + 在哪里 + 做什么 + 像什么风格？&#10;&#10;例如：一只可爱的小猫在梦幻森林中玩耍，日系动漫风格"
+      maxlength="500"
+      bind:change="onPromptChange"
+      bind:blur="onPromptBlur"
+    />
+    
+    <!-- 常用风格标签 -->
+    <view class="style-tags">
+      <view class="tags-title">常用风格：</view>
+      <view class="tags-container">
+        <t-tag
+          wx:for="{{artStyles}}"
+          wx:key="*this"
+          class="style-tag"
+          variant="{{selectedStyle === item ? 'dark' : 'light'}}"
+          bind:tap="onStyleTagTap"
+          data-style="{{item}}"
+        >
+          {{item}}
+        </t-tag>
+      </view>
+    </view>
+
+    <!-- 不想要的内容输入 -->
+    <view class="negative-input">
+      <view class="input-title">不想要的内容（可选）：</view>
+      <t-input
+        class="negative-prompt-input"
+        value="{{negativePrompt}}"
+        placeholder="例如：不要文字、不要模糊、不要水印"
+        maxlength="200"
+        bind:change="onNegativePromptChange"
+      />
+    </view>
+  </view>
+
+  <!-- 生成按钮 -->
+  <t-button
+    class="generate-btn"
+    theme="primary"
+    size="large"
+    loading="{{generating}}"
+    disabled="{{!prompt.trim() || generating}}"
+    bind:tap="onGenerateTap"
+  >
+    {{generating ? '生成中...' : '生成图片'}}
+  </t-button>
+
+  <!-- 图片展示区域 -->
+  <view class="result-section" wx:if="{{generatedImage || generating}}">
+    <view class="section-title">生成的图片</view>
+    
+    <view class="image-container">
+      <view class="image-placeholder" wx:if="{{generating}}">
+        <t-loading theme="circular" size="60rpx" />
+        <text class="loading-text">AI正在创作中，请稍候...</text>
+      </view>
+      
+      <t-image
+        wx:else
+        class="generated-image"
+        src="{{generatedImage}}"
+        mode="aspectFit"
+        loading="lazy"
+        bind:error="onImageError"
+      />
+    </view>
+    
+    <!-- 发布按钮 -->
+    <t-button
+      wx:if="{{generatedImage && !generating}}"
+      class="publish-btn"
+      theme="success"
+      size="large"
+      loading="{{publishing}}"
+      disabled="{{publishing}}"
+      bind:tap="onPublishTap"
+    >
+      {{publishing ? '发布中...' : '发布到画廊'}}
+    </t-button>
+  </view>
+
+  <!-- 灵感提示 -->
+  <view class="inspiration-section">
+    <view class="section-title">💡 创作灵感</view>
+    <view class="inspiration-list">
+      <view 
+        class="inspiration-item"
+        wx:for="{{inspirationTips}}"
+        wx:key="id"
+        bindtap="onInspirationTap"
+        data-tip="{{item}}"
+      >
+        <text class="inspiration-text">"{{item.prompt}}"</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- Toast提示 -->
+<t-toast id="t-toast" />
