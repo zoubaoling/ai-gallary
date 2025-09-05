@@ -17,14 +17,16 @@
       </button>
       
       <view class="user-details">
-        <input 
-          class="nickname-input"
-          type="nickname"
-          placeholder="请输入昵称"
-          value="{{userInfo.nickname}}"
-          bind:change="onNicknameChange"
-          bind:blur="onNicknameBlur"
-        />
+        <!-- 昵称显示区域 -->
+        <view class="nickname-section">
+          <view class="nickname-display">
+            <text class="nickname-text">{{userInfo.nickname}}</text>
+            <view class="edit-btn" bindtap="onEditNicknameTap">
+              <text class="edit-icon">✏️</text>
+            </view>
+          </view>
+        </view>
+        
         <text class="user-stats">已创作 {{myArtworks.length}} 幅作品</text>
       </view>
     </view>
@@ -136,6 +138,54 @@
   <view class="loading-section" wx:if="{{loading}}">
     <t-loading theme="circular" size="40rpx" />
     <text class="loading-text">加载中...</text>
+  </view>
+</view>
+
+<!-- 昵称编辑弹框 -->
+<view class="nickname-dialog-overlay" wx:if="{{showNicknameDialog}}" bindtap="onNicknameDialogClose">
+  <view class="nickname-dialog" catchtap="">
+    <view class="dialog-header">
+      <text class="dialog-title">修改昵称</text>
+      <view class="dialog-close" bindtap="onNicknameDialogClose">
+        <text class="close-icon">×</text>
+      </view>
+    </view>
+    
+    <view class="dialog-content">
+      <view class="dialog-subtitle">请输入新的昵称</view>
+      <t-input
+        class="nickname-input-dialog"
+        value="{{tempNickname}}"
+        placeholder="请输入昵称"
+        maxlength="20"
+        bind:change="onNicknameChange"
+        bind:focus="onNicknameFocus"
+        bind:blur="onNicknameBlur"
+        focus="{{showNicknameDialog}}"
+      />
+      <view class="input-tips">
+        <text class="tips-text">昵称长度不超过20个字符</text>
+      </view>
+    </view>
+    
+    <view class="dialog-footer">
+      <t-button 
+        class="dialog-btn cancel-btn"
+        theme="default"
+        size="medium"
+        bind:tap="onCancelNicknameTap"
+      >
+        取消
+      </t-button>
+      <t-button 
+        class="dialog-btn confirm-btn"
+        theme="primary"
+        size="medium"
+        bind:tap="onConfirmNicknameTap"
+      >
+        确定
+      </t-button>
+    </view>
   </view>
 </view>
 

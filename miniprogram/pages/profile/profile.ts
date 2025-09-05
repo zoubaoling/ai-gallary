@@ -8,7 +8,9 @@ Page<ProfilePageData, any>({
     myArtworks: [],
     loading: false,
     hasMore: true,
-    currentPage: 1
+    currentPage: 1,
+    showNicknameDialog: false,
+    tempNickname: ''
   },
 
   onLoad() {
@@ -217,19 +219,28 @@ Page<ProfilePageData, any>({
       const { avatarUrl } = e.detail;
       console.log('选择头像:', avatarUrl);
       
-      // 更新用户头像
-      const result = await cloudService.updateUserProfile(
-        this.data.userInfo?.nickname || '微信用户',
-        avatarUrl
-      );
+      this.showToast('正在上传头像...');
       
-      if (result.success && result.userInfo) {
-        this.setData({
-          userInfo: result.userInfo
-        });
-        this.showToast('头像更新成功');
+      // 上传头像到云存储
+      const uploadResult = await this.uploadAvatarToCloud(avatarUrl);
+      
+      if (uploadResult.success && uploadResult.cloudUrl) {
+        // 更新用户头像信息
+        const result = await cloudService.updateUserProfile(
+          this.data.userInfo?.nickname || '微信用户',
+          uploadResult.cloudUrl
+        );
+        
+        if (result.success && result.userInfo) {
+          this.setData({
+            userInfo: result.userInfo
+          });
+          this.showToast('头像更新成功');
+        } else {
+          this.showToast(result.error || '头像更新失败');
+        }
       } else {
-        this.showToast(result.error || '头像更新失败');
+        this.showToast(uploadResult.error || '头像上传失败');
       }
     } catch (error) {
       console.error('选择头像失败:', error);
@@ -237,27 +248,87 @@ Page<ProfilePageData, any>({
     }
   },
 
+  // 上传头像到云存储
+  async uploadAvatarToCloud(localPath: string): Promise<{success: boolean, cloudUrl?: string, error?: string}> {
+    try {
+      if (!this.data.userInfo?.id) {
+        return {
+          success: false,
+          error: '用户信息不完整'
+        };
+      }
+
+      // 使用cloudService上传头像
+      const result = await cloudService.uploadAvatar(localPath, this.data.userInfo.id);
+      
+      if (result.success && result.data) {
+        return {
+          success: true,
+          cloudUrl: result.data.tempUrl
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error || '头像上传失败'
+        };
+      }
+    } catch (error) {
+      console.error('上传头像到云存储失败:', error);
+      return {
+        success: false,
+        error: '头像上传异常，请重试'
+      };
+    }
+  },
+
+  // 打开昵称编辑弹框
+  onEditNicknameTap() {
+    this.setData({
+      showNicknameDialog: true,
+      tempNickname: this.data.userInfo?.nickname || ''
+    });
+  },
+
   // 昵称输入变化
   onNicknameChange(e: any) {
     const nickname = e.detail.value;
     this.setData({
-      'userInfo.nickname': nickname
+      tempNickname: nickname
     });
   },
 
-  // 昵称输入失焦
-  async onNicknameBlur(e: any) {
-    const nickname = e.detail.value.trim();
+  // 昵称输入框聚焦
+  onNicknameFocus() {
+    // 可以在这里添加一些聚焦时的逻辑
+    console.log('昵称输入框获得焦点');
+  },
+
+  // 昵称输入框失焦
+  onNicknameBlur() {
+    console.log('昵称输入框失去焦点');
+  },
+
+  // 确认修改昵称
+  async onConfirmNicknameTap() {
+    const nickname = this.data.tempNickname.trim();
+    
     if (!nickname) {
       this.showToast('昵称不能为空');
       return;
     }
 
     if (nickname === this.data.userInfo?.nickname) {
-      return; // 昵称没有变化
+      // 昵称没有变化，直接关闭弹框
+      this.setData({
+        showNicknameDialog: false,
+        tempNickname: ''
+      });
+      return;
     }
 
     try {
+      this.showToast('正在保存...');
+      
       // 更新用户昵称
       const result = await cloudService.updateUserProfile(
         nickname,
@@ -266,7 +337,9 @@ Page<ProfilePageData, any>({
       
       if (result.success && result.userInfo) {
         this.setData({
-          userInfo: result.userInfo
+          userInfo: result.userInfo,
+          showNicknameDialog: false,
+          tempNickname: ''
         });
         this.showToast('昵称更新成功');
       } else {
@@ -276,6 +349,22 @@ Page<ProfilePageData, any>({
       console.error('更新昵称失败:', error);
       this.showToast('昵称更新失败，请重试');
     }
+  },
+
+  // 取消修改昵称
+  onCancelNicknameTap() {
+    this.setData({
+      showNicknameDialog: false,
+      tempNickname: ''
+    });
+  },
+
+  // 弹框关闭事件
+  onNicknameDialogClose() {
+    this.setData({
+      showNicknameDialog: false,
+      tempNickname: ''
+    });
   },
 
   // 点击菜单项

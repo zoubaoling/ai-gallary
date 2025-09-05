@@ -8,6 +8,8 @@
     "t-image": "tdesign-miniprogram/image/image",
     "t-loading": "tdesign-miniprogram/loading/loading",
     "t-divider": "tdesign-miniprogram/divider/divider",
-    "t-toast": "tdesign-miniprogram/toast/toast"
+    "t-toast": "tdesign-miniprogram/toast/toast",
+    "t-dialog": "tdesign-miniprogram/dialog/dialog",
+    "t-input": "tdesign-miniprogram/input/input"
   }
 }

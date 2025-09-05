@@ -60,6 +60,8 @@ export interface ProfilePageData {
   loading: boolean;
   hasMore: boolean;
   currentPage: number;
+  showNicknameDialog: boolean;
+  tempNickname: string;
 }
 
 // 创建页面数据

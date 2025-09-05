@@ -257,6 +257,96 @@ export class CloudService {
     }
   }
 
+  // 上传头像到云存储
+  async uploadAvatar(localPath: string, userId: string): Promise<CloudDBResult> {
+    try {
+      // 生成云存储路径：/avatars/用户ID.jpg
+      const fileExtension = localPath.split('.').pop() || 'jpg';
+      const cloudPath = `avatars/${userId}.${fileExtension}`;
+      
+      console.log('上传头像到云存储:', {
+        localPath,
+        cloudPath,
+        userId
+      });
+
+      // 上传文件到云存储
+      const uploadResult = await wx.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: localPath
+      });
+
+      console.log('头像上传结果:', uploadResult);
+
+      if (uploadResult.fileID) {
+        // 获取文件的临时访问链接
+        const tempFileResult = await wx.cloud.getTempFileURL({
+          fileList: [uploadResult.fileID]
+        });
+
+        if (tempFileResult.fileList && tempFileResult.fileList.length > 0) {
+          const tempUrl = tempFileResult.fileList[0].tempFileURL;
+          return {
+            success: true,
+            data: {
+              fileID: uploadResult.fileID,
+              cloudPath: cloudPath,
+              tempUrl: tempUrl
+            }
+          };
+        } else {
+          return {
+            success: false,
+            error: '获取头像访问链接失败'
+          };
+        }
+      } else {
+        return {
+          success: false,
+          error: '头像上传失败'
+        };
+      }
+    } catch (error) {
+      console.error('上传头像到云存储失败:', error);
+      return {
+        success: false,
+        error: '头像上传异常，请重试'
+      };
+    }
+  }
+
+  // 删除云存储中的头像
+  async deleteAvatar(userId: string): Promise<CloudDBResult> {
+    try {
+      // 尝试删除不同格式的头像文件
+      const extensions = ['jpg', 'jpeg', 'png', 'gif'];
+      const deletePromises = extensions.map(ext => {
+        const cloudPath = `avatars/${userId}.${ext}`;
+        return wx.cloud.deleteFile({
+          fileList: [cloudPath]
+        }).catch(() => {
+          // 文件不存在时忽略错误
+          console.log(`头像文件不存在: ${cloudPath}`);
+          return { fileList: [] };
+        });
+      });
+
+      const results = await Promise.all(deletePromises);
+      console.log('删除头像结果:', results);
+
+      return {
+        success: true,
+        data: results
+      };
+    } catch (error) {
+      console.error('删除头像失败:', error);
+      return {
+        success: false,
+        error: '删除头像失败'
+      };
+    }
+  }
+
   // 获取所有作品列表
   async getAllArtworks(page: number = 1, limit: number = 10): Promise<CloudDBResult> {
     try {
