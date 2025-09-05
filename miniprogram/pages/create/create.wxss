@@ -94,22 +94,6 @@
   font-weight: 600;
 }
 
-/* 进度容器 */
-.progress-container {
-  background: white;
-  border-radius: 16rpx;
-  padding: 32rpx;
-  margin-bottom: 32rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
-}
-
-.progress-text {
-  display: block;
-  text-align: center;
-  font-size: 28rpx;
-  color: #666;
-  margin-top: 16rpx;
-}
 
 /* 结果区域 */
 .result-section {

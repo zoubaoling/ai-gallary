@@ -74,9 +74,7 @@ export interface CreatePageData {
   publishing: boolean;
   canGenerate: boolean;
   taskId: string | null;
-  taskStatus: string | null;
   isGenerating: boolean;
-  generationProgress: number;
   currentSeed: number | null;
   artStyles: ArtStyle[];
   inspirationTips: InspirationTip[];

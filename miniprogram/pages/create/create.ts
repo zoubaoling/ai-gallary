@@ -12,9 +12,7 @@ Page<CreatePageData, any>({
     publishing: false,
     canGenerate: false,
     taskId: null,
-    taskStatus: null,
     isGenerating: false,
-    generationProgress: 0,
     currentSeed: null,
     artStyles: [
       '写实',
@@ -162,9 +160,7 @@ Page<CreatePageData, any>({
       isGenerating: true,
       generating: true,
       generatedImage: null,
-      canGenerate: false,
-      generationProgress: 0,
-      taskStatus: '创建任务中...'
+      canGenerate: false
     });
 
     try {
@@ -189,8 +185,7 @@ Page<CreatePageData, any>({
 
       const taskId = taskResult.data.taskId;
       this.setData({
-        taskId: taskId,
-        taskStatus: '任务创建成功，开始生成...'
+        taskId: taskId
       });
 
       // 开始轮询任务结果
@@ -201,8 +196,7 @@ Page<CreatePageData, any>({
       this.setData({
         isGenerating: false,
         generating: false,
-        canGenerate: this.data.prompt && this.data.prompt.trim().length > 0,
-        taskStatus: null
+        canGenerate: this.data.prompt && this.data.prompt.trim().length > 0
       });
       this.showToast('生成失败，请重试');
     }
@@ -226,11 +220,6 @@ Page<CreatePageData, any>({
         const taskData = result.data;
         const status = taskData.taskStatus; // 修复：使用 taskStatus 而不是 status
 
-        // 更新进度和状态
-        this.setData({
-          generationProgress: Math.min(attempts * 2, 90), // 最多显示90%进度
-          taskStatus: `生成中... (${status})`
-        });
 
         if (status === 'SUCCEEDED') {
           // 任务成功完成
@@ -249,9 +238,7 @@ Page<CreatePageData, any>({
                 generatedImage: cloudUrl,
                 isGenerating: false,
                 generating: false,
-                canGenerate: this.data.prompt && this.data.prompt.trim().length > 0,
-                generationProgress: 100,
-                taskStatus: '生成完成！'
+                canGenerate: this.data.prompt && this.data.prompt.trim().length > 0
               });
               this.showToast('图片生成成功！');
             } else {
@@ -277,8 +264,7 @@ Page<CreatePageData, any>({
         this.setData({
           isGenerating: false,
           generating: false,
-          canGenerate: this.data.prompt && this.data.prompt.trim().length > 0,
-          taskStatus: null
+          canGenerate: this.data.prompt && this.data.prompt.trim().length > 0
         });
         this.showToast('生成失败，请重试');
       }

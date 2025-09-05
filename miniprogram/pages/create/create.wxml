@@ -54,15 +54,6 @@
     {{isGenerating ? '生成中...' : '生成图片'}}
   </t-button>
 
-  <!-- 生成进度显示 -->
-  <view class="progress-container" wx:if="{{isGenerating}}">
-    <t-progress 
-      percentage="{{generationProgress}}" 
-      theme="line" 
-      size="medium"
-    />
-    <text class="progress-text">{{taskStatus}}</text>
-  </view>
 
   <!-- 图片展示区域 -->
   <view class="result-section" wx:if="{{generatedImage || isGenerating}}">

@@ -53,29 +53,48 @@ Page<HomePageData, any>({
     try {
       const page = refresh ? 1 : this.data.currentPage;
       
-      // 尝试从云数据库加载作品
-      const result = await cloudService.getAllArtworks(page, 10);
+      // 调用云函数获取所有用户的作品
+      const result = await wx.cloud.callFunction({
+        name: 'getAllImages',
+        data: {
+          page: page,
+          pageSize: 10
+        }
+      });
       
-      if (result.success && result.data) {
-        const artworks = result.data;
+      if (result.result && (result.result as any).success && (result.result as any).data) {
+        const { images, hasMore } = (result.result as any).data;
+        
+        // 转换数据格式以匹配现有的 Artwork 类型
+        const artworks = images.map((image: any) => ({
+          id: image._id,
+          title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
+          description: image.prompt,
+          imageUrl: image.imageUrl,
+          prompt: image.prompt,
+          negativePrompt: image.negativePrompt,
+          style: image.style,
+          author: image.author,
+          createTime: this.formatTime(image.createTime),
+          likeCount: image.likeCount,
+          isLiked: image.isLiked
+        }));
+        
         this.setData({
           artworks: refresh ? artworks : [...this.data.artworks, ...artworks],
           currentPage: page,
-          hasMore: result.count === 10, // 如果返回10条，可能还有更多
+          hasMore: hasMore,
           loading: false,
           refreshing: false
         });
       } else {
-        // 如果云开发失败，使用模拟数据作为备选
-        console.warn('云开发获取作品失败，使用模拟数据:', result.error);
-        const artworks = await this.fetchArtworks(page);
+        // 云函数获取作品失败
+        console.error('云函数获取作品失败:', (result.result as any)?.error);
         this.setData({
-          artworks: refresh ? artworks : [...this.data.artworks, ...artworks],
-          currentPage: page,
-          hasMore: artworks.length >= 10,
           loading: false,
           refreshing: false
         });
+        this.showToast('加载作品失败，请重试');
       }
 
       if (refresh) {
@@ -83,28 +102,14 @@ Page<HomePageData, any>({
       }
     } catch (error) {
       console.error('加载作品失败:', error);
-      // 使用模拟数据作为备选
-      try {
-        const page = refresh ? 1 : this.data.currentPage;
-        const artworks = await this.fetchArtworks(page);
-        this.setData({
-          artworks: refresh ? artworks : [...this.data.artworks, ...artworks],
-          currentPage: page,
-          hasMore: artworks.length >= 10,
-          loading: false,
-          refreshing: false
-        });
-        
-        if (refresh) {
-          wx.stopPullDownRefresh();
-        }
-      } catch (fallbackError) {
-        console.error('备选方案也失败:', fallbackError);
-        this.setData({
-          loading: false,
-          refreshing: false
-        });
-        this.showToast('加载失败，请重试');
+      this.setData({
+        loading: false,
+        refreshing: false
+      });
+      this.showToast('加载失败，请重试');
+
+      if (refresh) {
+        wx.stopPullDownRefresh();
       }
     }
   },
@@ -122,86 +127,6 @@ Page<HomePageData, any>({
     this.loadArtworks();
   },
 
-  // 模拟API请求
-  async fetchArtworks(page: number): Promise<Artwork[]> {
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // 模拟数据
-    const mockArtworks: Artwork[] = [
-      {
-        id: `artwork_${page}_1`,
-        title: '梦幻森林',
-        description: '一只可爱的小猫在梦幻森林中玩耍',
-        imageUrl: 'https://picsum.photos/400/400?random=1',
-        prompt: '一只可爱的小猫在梦幻森林中玩耍，日系动漫风格',
-        author: {
-          id: 'user_1',
-          nickname: '用户A',
-          avatar: 'https://picsum.photos/100/100?random=11',
-          createTime: '2024-01-01'
-        },
-        createTime: '2小时前',
-        likeCount: 128,
-        isLiked: false
-      },
-      {
-        id: `artwork_${page}_2`,
-        title: '未来城市',
-        description: '赛博朋克风格的未来都市夜景',
-        imageUrl: 'https://picsum.photos/400/400?random=2',
-        prompt: '未来城市的夜景，霓虹灯闪烁，赛博朋克风格，电影质感',
-        author: {
-          id: 'user_2',
-          nickname: '用户B',
-          avatar: 'https://picsum.photos/100/100?random=12',
-          createTime: '2024-01-01'
-        },
-        createTime: '5小时前',
-        likeCount: 256,
-        isLiked: true
-      },
-      {
-        id: `artwork_${page}_3`,
-        title: '动漫少女',
-        description: '日系动漫风格的可爱少女',
-        imageUrl: 'https://picsum.photos/400/400?random=3',
-        prompt: '日系动漫风格的可爱少女，校园背景，清新画风',
-        author: {
-          id: 'user_3',
-          nickname: '用户C',
-          avatar: 'https://picsum.photos/100/100?random=13',
-          createTime: '2024-01-01'
-        },
-        createTime: '1天前',
-        likeCount: 89,
-        isLiked: false
-      },
-      {
-        id: `artwork_${page}_4`,
-        title: '科幻机甲',
-        description: '未来科幻风格的巨型机甲',
-        imageUrl: 'https://picsum.photos/400/400?random=4',
-        prompt: '未来科幻风格的巨型机甲，金属质感，战斗场景',
-        author: {
-          id: 'user_4',
-          nickname: '用户D',
-          avatar: 'https://picsum.photos/100/100?random=14',
-          createTime: '2024-01-01'
-        },
-        createTime: '2天前',
-        likeCount: 312,
-        isLiked: false
-      }
-    ];
-
-    // 模拟分页，只返回前几页的数据
-    if (page > 3) {
-      return [];
-    }
-
-    return mockArtworks;
-  },
 
   // 点击作品
   onArtworkTap(e: any) {
@@ -244,6 +169,27 @@ Page<HomePageData, any>({
     console.error('头像加载失败:', e);
     // 头像加载失败时，t-avatar组件会自动使用默认图片
     // 默认图片路径已在WXML中设置：/assets/icons/user-avatar.png
+  },
+
+  // 格式化时间
+  formatTime(timeString: string): string {
+    const now = new Date();
+    const time = new Date(timeString);
+    const diff = now.getTime() - time.getTime();
+    
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (minutes < 60) {
+      return `${minutes}分钟前`;
+    } else if (hours < 24) {
+      return `${hours}小时前`;
+    } else if (days < 7) {
+      return `${days}天前`;
+    } else {
+      return time.toLocaleDateString();
+    }
   },
 
   // 显示Toast
