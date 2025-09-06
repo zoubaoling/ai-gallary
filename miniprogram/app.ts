@@ -1,6 +1,6 @@
 // app.ts
 import { IAppOption, GlobalData, UserInfo } from './types/index';
-
+import { getCloudCOnfig } from './config/index';
 App<IAppOption>({
   globalData: {
     userInfo: null,
@@ -29,10 +29,10 @@ App<IAppOption>({
       console.error('请使用 2.2.3 或以上的基础库以使用云能力');
       return;
     }
-    
+    const cloudConfig = getCloudCOnfig()
     wx.cloud.init({
-      env: 'zou-cloud1-4gee2jb2b028dcdc', // 云开发环境ID
-      traceUser: true, // 记录用户访问
+      env: cloudConfig.env, // 云开发环境ID
+      traceUser: cloudConfig.traceUser, // 记录用户访问
     });
     
   },
