@@ -128,41 +128,9 @@ Page<ProfilePageData, any>({
             }
           }
           
-          // 如果没有fileID或获取失败，使用云存储路径
+          // 如果没有fileID或获取失败，保持原始URL
           if (!imageUrl || imageUrl === image.imageUrl) {
-            if (image.cloudPath) {
-              try {
-                const tempFileResult = await wx.cloud.getTempFileURL({
-                  fileList: [image.cloudPath]
-                });
-                if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
-                  imageUrl = tempFileResult.fileList[0].tempFileURL;
-                } else {
-                  console.warn('使用cloudPath获取临时URL为空:', image.cloudPath);
-                }
-              } catch (error) {
-                console.error('使用cloudPath获取临时URL失败:', error, 'cloudPath:', image.cloudPath);
-              }
-            } else if (image.imageUrl && image.imageUrl.includes('tcb.qcloud.la')) {
-              // 最后尝试从临时URL中提取路径
-              try {
-                const urlParts = image.imageUrl.split('?')[0];
-                const pathParts = urlParts.split('/');
-                const imagesIndex = pathParts.indexOf('images');
-                if (imagesIndex !== -1) {
-                  const extractedPath = pathParts.slice(imagesIndex).join('/');
-                  
-                  const tempFileResult = await wx.cloud.getTempFileURL({
-                    fileList: [extractedPath]
-                  });
-                  if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
-                    imageUrl = tempFileResult.fileList[0].tempFileURL;
-                  }
-                }
-              } catch (error) {
-                console.error('从临时URL提取路径失败:', error);
-              }
-            }
+            console.warn('没有有效的fileID，使用原始图片URL:', image.imageUrl);
           }
           
           return {
@@ -255,40 +223,25 @@ Page<ProfilePageData, any>({
         const newArtworks = await Promise.all(images.map(async (image: any) => {
           let imageUrl = image.imageUrl;
           
-          // 优先使用云存储路径获取临时URL
-          if (image.cloudPath) {
+          // 优先使用fileID获取临时URL
+          if (image.fileID) {
             try {
               const tempFileResult = await wx.cloud.getTempFileURL({
-                fileList: [image.cloudPath]
+                fileList: [image.fileID]
               });
               if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
                 imageUrl = tempFileResult.fileList[0].tempFileURL;
               } else {
-                console.warn('获取临时URL为空，使用原始URL:', image.cloudPath);
+                console.warn('使用fileID获取临时URL为空:', image.fileID);
               }
             } catch (error) {
-              console.error('获取临时URL失败:', error, 'cloudPath:', image.cloudPath);
-              // 如果获取失败，使用原始URL
+              console.error('使用fileID获取临时URL失败:', error, 'fileID:', image.fileID);
             }
-          } else if (image.imageUrl && image.imageUrl.includes('tcb.qcloud.la')) {
-            // 如果没有cloudPath但有临时URL，尝试提取路径
-            try {
-              const urlParts = image.imageUrl.split('?')[0];
-              const pathParts = urlParts.split('/');
-              const imagesIndex = pathParts.indexOf('images');
-              if (imagesIndex !== -1) {
-                const extractedPath = pathParts.slice(imagesIndex).join('/');
-              
-                              const tempFileResult = await wx.cloud.getTempFileURL({
-                  fileList: [extractedPath]
-                });
-                if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
-                  imageUrl = tempFileResult.fileList[0].tempFileURL;
-                }
-              }
-            } catch (error) {
-              console.error('从临时URL提取路径失败:', error);
-            }
+          }
+          
+          // 如果没有fileID或获取失败，保持原始URL
+          if (!imageUrl || imageUrl === image.imageUrl) {
+            console.warn('没有有效的fileID，使用原始图片URL:', image.imageUrl);
           }
           
           return {
