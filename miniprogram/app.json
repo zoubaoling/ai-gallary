@@ -45,6 +45,7 @@
     "t-tag": "tdesign-miniprogram/tag/tag",
     "t-avatar": "tdesign-miniprogram/avatar/avatar",
     "t-divider": "tdesign-miniprogram/divider/divider",
-    "t-toast": "tdesign-miniprogram/toast/toast"
+    "t-toast": "tdesign-miniprogram/toast/toast",
+    "t-icon": "tdesign-miniprogram/icon/icon"
   }
 }

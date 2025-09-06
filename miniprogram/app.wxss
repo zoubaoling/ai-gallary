@@ -9,9 +9,9 @@
   box-sizing: border-box;
 } 
 @font-face {
-  font-family: 't';
-  src: url('/assets/fonts/t.woff') format('woff');
-  font-weight: 400;
+  font-family: 't-icon';
+  src: url('./assets/fonts/t.woff') format('woff');
+  font-weight: normal;
   font-style: normal;
-  font-display: swap;
 }
+
