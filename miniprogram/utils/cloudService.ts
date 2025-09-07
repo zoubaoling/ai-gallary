@@ -491,6 +491,61 @@ export class CloudService {
       };
     }
   }
+
+  // 获取临时文件URL的公共函数
+  async getTempFileURL(fileID: string, fallbackUrl?: string): Promise<string> {
+    if (!fileID) {
+      console.warn('fileID为空，返回fallback URL:', fallbackUrl);
+      return fallbackUrl || '';
+    }
+
+    try {
+      const tempFileResult = await wx.cloud.getTempFileURL({
+        fileList: [fileID]
+      });
+      
+      if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
+        return tempFileResult.fileList[0].tempFileURL;
+      } else {
+        console.warn('使用fileID获取临时URL为空:', fileID);
+        return fallbackUrl || '';
+      }
+    } catch (error) {
+      console.error('使用fileID获取临时URL失败:', error, 'fileID:', fileID);
+      return fallbackUrl || '';
+    }
+  }
+
+  // 批量获取临时文件URL的公共函数
+  async getBatchTempFileURLs(fileIDs: string[], fallbackUrls?: string[]): Promise<string[]> {
+    if (!fileIDs || fileIDs.length === 0) {
+      return fallbackUrls || [];
+    }
+
+    try {
+      const tempFileResult = await wx.cloud.getTempFileURL({
+        fileList: fileIDs
+      });
+      
+      const results: string[] = [];
+      for (let i = 0; i < fileIDs.length; i++) {
+        const fileID = fileIDs[i];
+        const fallbackUrl = fallbackUrls?.[i];
+        
+        if (tempFileResult.fileList && tempFileResult.fileList[i] && tempFileResult.fileList[i].tempFileURL) {
+          results.push(tempFileResult.fileList[i].tempFileURL);
+        } else {
+          console.warn('使用fileID获取临时URL为空:', fileID);
+          results.push(fallbackUrl || '');
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('批量获取临时URL失败:', error);
+      return fallbackUrls || [];
+    }
+  }
 }
 
 // 导出单例实例

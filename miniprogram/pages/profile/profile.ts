@@ -31,19 +31,8 @@ Page<ProfilePageData, any>({
     const userInfo = wx.getStorageSync('userInfo') as UserInfo | null;
     
     if (userInfo && userInfo.avatarFileID) {
-      // 动态获取头像临时URL
-      try {
-        const avatarTempResult = await wx.cloud.getTempFileURL({
-          fileList: [userInfo.avatarFileID]
-        });
-        if (avatarTempResult.fileList && avatarTempResult.fileList[0] && avatarTempResult.fileList[0].tempFileURL) {
-          userInfo.avatar = avatarTempResult.fileList[0].tempFileURL;
-        } else {
-          console.warn('使用avatarFileID获取临时URL为空:', userInfo.avatarFileID);
-        }
-      } catch (error) {
-        console.error('使用avatarFileID获取临时URL失败:', error, 'avatarFileID:', userInfo.avatarFileID);
-      }
+      // 使用公共函数获取头像临时URL
+      userInfo.avatar = await cloudService.getTempFileURL(userInfo.avatarFileID, userInfo.avatar);
     }
     
     this.setData({
@@ -95,79 +84,7 @@ Page<ProfilePageData, any>({
       hasMore: true
     });
 
-    try {
-      // 调用云函数获取用户发布的图片
-      const result = await wx.cloud.callFunction({
-        name: 'getUserImages',
-        data: {
-          page: 1,
-          pageSize: 6
-        }
-      });
-
-      if (result.result && (result.result as any).success && (result.result as any).data) {
-        const { images, hasMore } = (result.result as any).data;
-        
-        // 转换数据格式以匹配现有的 Artwork 类型，并动态获取临时URL
-        const artworks = await Promise.all(images.map(async (image: any) => {
-          let imageUrl = image.imageUrl;
-          
-          // 优先使用fileID获取临时URL
-          if (image.fileID) {
-            try {
-              const tempFileResult = await wx.cloud.getTempFileURL({
-                fileList: [image.fileID]
-              });
-              if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
-                imageUrl = tempFileResult.fileList[0].tempFileURL;
-              } else {
-                console.warn('使用fileID获取临时URL为空:', image.fileID);
-              }
-            } catch (error) {
-              console.error('使用fileID获取临时URL失败:', error, 'fileID:', image.fileID);
-            }
-          }
-          
-          // 如果没有fileID或获取失败，保持原始URL
-          if (!imageUrl || imageUrl === image.imageUrl) {
-            console.warn('没有有效的fileID，使用原始图片URL:', image.imageUrl);
-          }
-          
-          return {
-            id: image._id,
-            title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
-            description: image.prompt,
-            imageUrl: imageUrl,
-            prompt: image.prompt,
-            negativePrompt: image.negativePrompt,
-            style: image.style,
-            author: image.author,
-            createTime: this.formatTime(image.createTime),
-            likeCount: image.likeCount,
-            isLiked: image.isLiked
-          };
-        }));
-
-        this.setData({
-          myArtworks: artworks,
-          loading: false,
-          hasMore: hasMore
-        });
-      } else {
-        // 云函数获取作品失败
-        console.error('云函数获取作品失败:', (result.result as any)?.error);
-        this.setData({
-          loading: false
-        });
-        this.showToast('加载作品失败，请重试');
-      }
-    } catch (error) {
-      console.error('加载作品失败:', error);
-      this.setData({
-        loading: false
-      });
-      this.showToast('加载失败，请重试');
-    }
+    await this.fetchArtworks(1, true);
   },
 
 
@@ -203,15 +120,18 @@ Page<ProfilePageData, any>({
     }
 
     this.setData({ loading: true });
+    const nextPage = this.data.currentPage + 1;
+    await this.fetchArtworks(nextPage, false);
+  },
 
+  // 获取作品数据的公共方法
+  async fetchArtworks(page: number, isRefresh: boolean = false) {
     try {
-      const nextPage = this.data.currentPage + 1;
-      
-      // 调用云函数获取更多用户发布的图片
+      // 调用云函数获取用户发布的图片
       const result = await wx.cloud.callFunction({
         name: 'getUserImages',
         data: {
-          page: nextPage,
+          page: page,
           pageSize: 6
         }
       });
@@ -219,67 +139,55 @@ Page<ProfilePageData, any>({
       if (result.result && (result.result as any).success && (result.result as any).data) {
         const { images, hasMore } = (result.result as any).data;
         
-        // 转换数据格式以匹配现有的 Artwork 类型，并动态获取临时URL
-        const newArtworks = await Promise.all(images.map(async (image: any) => {
-          let imageUrl = image.imageUrl;
-          
-          // 优先使用fileID获取临时URL
-          if (image.fileID) {
-            try {
-              const tempFileResult = await wx.cloud.getTempFileURL({
-                fileList: [image.fileID]
-              });
-              if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
-                imageUrl = tempFileResult.fileList[0].tempFileURL;
-              } else {
-                console.warn('使用fileID获取临时URL为空:', image.fileID);
-              }
-            } catch (error) {
-              console.error('使用fileID获取临时URL失败:', error, 'fileID:', image.fileID);
-            }
-          }
-          
-          // 如果没有fileID或获取失败，保持原始URL
-          if (!imageUrl || imageUrl === image.imageUrl) {
-            console.warn('没有有效的fileID，使用原始图片URL:', image.imageUrl);
-          }
-          
-          return {
-            id: image._id,
-            title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
-            description: image.prompt,
-            imageUrl: imageUrl,
-            prompt: image.prompt,
-            negativePrompt: image.negativePrompt,
-            style: image.style,
-            author: image.author,
-            createTime: this.formatTime(image.createTime),
-            likeCount: image.likeCount,
-            isLiked: image.isLiked
-          };
-        }));
+        // 转换数据格式
+        const artworks = await this.transformImagesToArtworks(images);
 
         this.setData({
-          myArtworks: [...this.data.myArtworks, ...newArtworks],
-          currentPage: nextPage,
+          myArtworks: isRefresh ? artworks : [...this.data.myArtworks, ...artworks],
+          currentPage: page,
           hasMore: hasMore,
           loading: false
         });
       } else {
-        // 云函数失败
-        console.error('云函数获取更多作品失败:', (result.result as any)?.error);
-        this.setData({ 
-          hasMore: false,
-          loading: false 
-        });
-        this.showToast('加载更多作品失败');
+        // 云函数获取作品失败
+        console.error('云函数获取作品失败:', (result.result as any)?.error);
+        this.handleFetchError(isRefresh);
       }
-
     } catch (error) {
-      console.error('加载更多作品失败:', error);
-      this.setData({ loading: false });
-      this.showToast('加载失败，请重试');
+      console.error('加载作品失败:', error);
+      this.handleFetchError(isRefresh);
     }
+  },
+
+  // 转换图片数据为作品格式
+  async transformImagesToArtworks(images: any[]): Promise<Artwork[]> {
+    return await Promise.all(images.map(async (image: any) => {
+      // 使用公共函数获取图片临时URL
+      const imageUrl = await cloudService.getTempFileURL(image.fileID, image.imageUrl);
+      
+      return {
+        id: image._id,
+        title: image.prompt.substring(0, 20) + (image.prompt.length > 20 ? '...' : ''),
+        description: image.prompt,
+        imageUrl: imageUrl,
+        prompt: image.prompt,
+        negativePrompt: image.negativePrompt,
+        style: image.style,
+        author: image.author,
+        createTime: this.formatTime(image.createTime),
+        likeCount: image.likeCount,
+        isLiked: image.isLiked
+      };
+    }));
+  },
+
+  // 处理获取数据失败的情况
+  handleFetchError(isRefresh: boolean) {
+    this.setData({
+      loading: false,
+      hasMore: isRefresh ? true : false
+    });
+    this.showToast(isRefresh ? '加载作品失败，请重试' : '加载更多作品失败');
   },
 
   // 图片加载错误
@@ -417,10 +325,9 @@ Page<ProfilePageData, any>({
       
       if (result.success && result.userInfo) {
         this.setData({
-          userInfo: result.userInfo,
-          showNicknameDialog: false,
-          tempNickname: ''
+          userInfo: result.userInfo
         });
+        this.closeNicknameDialog();
         this.showToast('昵称更新成功');
       } else {
         this.showToast(result.error || '昵称更新失败');
@@ -433,14 +340,16 @@ Page<ProfilePageData, any>({
 
   // 取消修改昵称
   onCancelNicknameTap() {
-    this.setData({
-      showNicknameDialog: false,
-      tempNickname: ''
-    });
+    this.closeNicknameDialog();
   },
 
   // 弹框关闭事件
   onNicknameDialogClose() {
+    this.closeNicknameDialog();
+  },
+
+  // 关闭昵称弹框的公共方法
+  closeNicknameDialog() {
     this.setData({
       showNicknameDialog: false,
       tempNickname: ''

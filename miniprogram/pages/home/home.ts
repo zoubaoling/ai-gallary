@@ -65,41 +65,11 @@ Page<HomePageData, any>({
         
         // 转换数据格式以匹配现有的 Artwork 类型，并动态获取临时URL
         const artworks = await Promise.all(images.map(async (image: any) => {
-          let imageUrl = image.imageUrl;
+          // 使用公共函数获取图片临时URL
+          const imageUrl = await cloudService.getTempFileURL(image.fileID, image.imageUrl);
           
-          // 优先使用fileID获取临时URL
-          if (image.fileID) {
-            try {
-              const tempFileResult = await wx.cloud.getTempFileURL({
-                fileList: [image.fileID]
-              });
-              if (tempFileResult.fileList && tempFileResult.fileList[0] && tempFileResult.fileList[0].tempFileURL) {
-                imageUrl = tempFileResult.fileList[0].tempFileURL;
-              }
-            } catch (error) {
-              console.error('使用fileID获取临时URL失败:', error);
-            }
-          }
-          
-          // 如果没有fileID或获取失败，保持原始URL
-          if (!imageUrl || imageUrl === image.imageUrl) {
-            console.warn('没有有效的fileID，使用原始图片URL:', image.imageUrl);
-          }
-          
-          // 处理用户头像的临时URL
-          let authorAvatar = image.author.avatar;
-          if (image.author.avatarFileID) {
-            try {
-              const avatarTempResult = await wx.cloud.getTempFileURL({
-                fileList: [image.author.avatarFileID]
-              });
-              if (avatarTempResult.fileList && avatarTempResult.fileList[0] && avatarTempResult.fileList[0].tempFileURL) {
-                authorAvatar = avatarTempResult.fileList[0].tempFileURL;
-              }
-            } catch (error) {
-              console.error('使用avatarFileID获取临时URL失败:', error);
-            }
-          }
+          // 使用公共函数获取用户头像临时URL
+          const authorAvatar = await cloudService.getTempFileURL(image.author.avatarFileID, image.author.avatar);
           
           return {
             id: image._id,
