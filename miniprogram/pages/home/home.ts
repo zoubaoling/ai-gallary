@@ -1,6 +1,7 @@
 // 首页
 import { HomePageData, Artwork } from '../../types/index';
 import { cloudService } from '../../utils/cloudService';
+import { stateManager } from '../../utils/stateManager';
 
 Page<HomePageData, any>({
   data: {
@@ -51,17 +52,12 @@ Page<HomePageData, any>({
     try {
       const page = refresh ? 1 : this.data.currentPage;
       
-      // 调用云函数获取所有用户的作品
-      const result = await wx.cloud.callFunction({
-        name: 'getAllImages',
-        data: {
-          page: page,
-          pageSize: 10
-        }
-      });
+      // 使用状态管理服务获取数据（带缓存）
+      const result = await stateManager.getAllArtworks(page, 10);
       
-      if (result.result && (result.result as any).success && (result.result as any).data) {
-        const { images, hasMore } = (result.result as any).data;
+      if (result.success && result.data) {
+        const images = result.data;
+        const hasMore = result.hasMore;
         
         // 转换数据格式以匹配现有的 Artwork 类型，并动态获取临时URL
         const artworks = await Promise.all(images.map(async (image: any) => {
@@ -97,8 +93,8 @@ Page<HomePageData, any>({
           refreshing: false
         });
       } else {
-        // 云函数获取作品失败
-        console.error('云函数获取作品失败:', (result.result as any)?.error);
+        // 获取作品失败
+        console.error('获取作品失败:', result.error);
         this.setData({
           loading: false,
           refreshing: false

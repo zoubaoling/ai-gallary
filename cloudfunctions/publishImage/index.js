@@ -25,7 +25,22 @@ exports.main = async (event, context) => {
     if (!imageUrl || !prompt) {
       return {
         success: false,
-        error: '缺少必要参数'
+        error: '缺少必要参数: imageUrl 和 prompt'
+      };
+    }
+
+    // 3. 数据验证
+    if (prompt.length > 500) {
+      return {
+        success: false,
+        error: '提示词长度不能超过500个字符'
+      };
+    }
+
+    if (negativePrompt && negativePrompt.length > 200) {
+      return {
+        success: false,
+        error: '负面提示词长度不能超过200个字符'
       };
     }
 

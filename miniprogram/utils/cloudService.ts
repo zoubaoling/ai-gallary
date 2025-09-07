@@ -3,10 +3,9 @@ import { UserInfo, CloudLoginResponse, CloudDBResult } from '../types/index';
 
 export class CloudService {
   private static instance: CloudService;
-  private db: any;
 
   private constructor() {
-    this.db = wx.cloud.database();
+    // 不再需要直接初始化数据库，所有数据库操作都通过云函数
   }
 
   public static getInstance(): CloudService {
@@ -158,22 +157,23 @@ export class CloudService {
     }
   }
 
-  // 从云数据库获取用户信息
+  // 获取用户信息（通过云函数）
   async getUserInfo(openid: string): Promise<CloudDBResult<UserInfo>> {
     try {
-      const result = await this.db.collection('users').where({
-        openid: openid
-      }).get();
+      const result = await wx.cloud.callFunction({
+        name: 'getUserInfo',
+        data: { openid }
+      });
 
-      if (result.data && result.data.length > 0) {
+      if (result.result && (result.result as any).success) {
         return {
           success: true,
-          data: result.data[0]
+          data: (result.result as any).data
         };
       } else {
         return {
           success: false,
-          error: '用户不存在'
+          error: (result.result as any)?.error || '获取用户信息失败'
         };
       }
     } catch (error) {
@@ -185,20 +185,25 @@ export class CloudService {
     }
   }
 
-  // 更新用户信息
+  // 更新用户信息（通过云函数）
   async updateUserInfo(userInfo: Partial<UserInfo>): Promise<CloudDBResult> {
     try {
-      const result = await this.db.collection('users').doc(userInfo._id).update({
-        data: {
-          ...userInfo,
-          updateTime: new Date().toISOString()
-        }
+      const result = await wx.cloud.callFunction({
+        name: 'updateUserInfo',
+        data: { userInfo }
       });
 
-      return {
-        success: true,
-        data: result
-      };
+      if (result.result && (result.result as any).success) {
+        return {
+          success: true,
+          data: (result.result as any).data
+        };
+      } else {
+        return {
+          success: false,
+          error: (result.result as any)?.error || '更新用户信息失败'
+        };
+      }
     } catch (error) {
       console.error('更新用户信息失败:', error);
       return {
@@ -208,23 +213,27 @@ export class CloudService {
     }
   }
 
-  // 获取用户作品列表
+  // 获取用户作品列表（通过云函数）
   async getUserArtworks(openid: string, page: number = 1, limit: number = 10): Promise<CloudDBResult> {
     try {
-      const result = await this.db.collection('artworks')
-        .where({
-          'author.openid': openid
-        })
-        .orderBy('createTime', 'desc')
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .get();
+      const result = await wx.cloud.callFunction({
+        name: 'getUserImages',
+        data: { page, pageSize: limit }
+      });
 
-      return {
-        success: true,
-        data: result.data,
-        count: result.data.length
-      };
+      if (result.result && (result.result as any).success) {
+        return {
+          success: true,
+          data: (result.result as any).data.images,
+          count: (result.result as any).data.total,
+          hasMore: (result.result as any).data.hasMore
+        };
+      } else {
+        return {
+          success: false,
+          error: (result.result as any)?.error || '获取用户作品失败'
+        };
+      }
     } catch (error) {
       console.error('获取用户作品失败:', error);
       return {
@@ -234,21 +243,25 @@ export class CloudService {
     }
   }
 
-  // 保存作品到云数据库
+  // 保存作品（通过云函数）
   async saveArtwork(artwork: any): Promise<CloudDBResult> {
     try {
-      const result = await this.db.collection('artworks').add({
-        data: {
-          ...artwork,
-          createTime: new Date().toISOString(),
-          updateTime: new Date().toISOString()
-        }
+      const result = await wx.cloud.callFunction({
+        name: 'publishImage',
+        data: artwork
       });
 
-      return {
-        success: true,
-        data: result
-      };
+      if (result.result && (result.result as any).success) {
+        return {
+          success: true,
+          data: (result.result as any).data
+        };
+      } else {
+        return {
+          success: false,
+          error: (result.result as any)?.error || '保存作品失败'
+        };
+      }
     } catch (error) {
       console.error('保存作品失败:', error);
       return {
@@ -340,20 +353,27 @@ export class CloudService {
     }
   }
 
-  // 获取所有作品列表
+  // 获取所有作品列表（通过云函数）
   async getAllArtworks(page: number = 1, limit: number = 10): Promise<CloudDBResult> {
     try {
-      const result = await this.db.collection('artworks')
-        .orderBy('createTime', 'desc')
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .get();
+      const result = await wx.cloud.callFunction({
+        name: 'getAllImages',
+        data: { page, pageSize: limit }
+      });
 
-      return {
-        success: true,
-        data: result.data,
-        count: result.data.length
-      };
+      if (result.result && (result.result as any).success) {
+        return {
+          success: true,
+          data: (result.result as any).data.images,
+          count: (result.result as any).data.total,
+          hasMore: (result.result as any).data.hasMore
+        };
+      } else {
+        return {
+          success: false,
+          error: (result.result as any)?.error || '获取作品列表失败'
+        };
+      }
     } catch (error) {
       console.error('获取作品列表失败:', error);
       return {

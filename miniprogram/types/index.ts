@@ -155,4 +155,5 @@ export interface CloudDBResult<T = any> {
   data?: T;
   error?: string;
   count?: number;
+  hasMore?: boolean;
 }

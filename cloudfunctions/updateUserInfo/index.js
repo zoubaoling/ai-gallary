@@ -11,6 +11,14 @@ exports.main = async (event, context) => {
   const { userInfo, openid, avatarFileID } = event;
   
   try {
+    // 参数验证
+    if (!userInfo) {
+      return {
+        success: false,
+        error: '缺少必需参数: userInfo'
+      };
+    }
+
     // 获取当前用户的openid
     const { OPENID } = cloud.getWXContext();
     const targetOpenid = openid || OPENID;
@@ -19,6 +27,14 @@ exports.main = async (event, context) => {
       return {
         success: false,
         error: '获取用户openid失败'
+      };
+    }
+
+    // 数据验证
+    if (userInfo.nickName && userInfo.nickName.length > 20) {
+      return {
+        success: false,
+        error: '昵称长度不能超过20个字符'
       };
     }
 
