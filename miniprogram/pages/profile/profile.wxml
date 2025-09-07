@@ -180,16 +180,15 @@
   close-on-overlay-click="{{true}}"
 >
   <view slot="content" class="nickname-dialog-content">
-    <t-input
-      class="nickname-input"
-      value="{{tempNickname}}"
-      placeholder="请输入昵称"
-      maxlength="20"
-      bind:change="onNicknameChange"
-      bind:focus="onNicknameFocus"
-      bind:blur="onNicknameBlur"
-      focus="{{showNicknameDialog}}"
-    />
+      <t-input
+        class="nickname-input"
+        model:value="{{tempNickname}}"
+        placeholder="请输入昵称"
+        maxlength="20"
+        bind:focus="onNicknameFocus"
+        bind:blur="onNicknameBlur"
+        focus="{{showNicknameDialog}}"
+      />
     <view class="input-tips">
       <text class="tips-text">昵称长度不超过20个字符</text>
     </view>

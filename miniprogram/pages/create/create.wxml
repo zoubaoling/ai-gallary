@@ -5,10 +5,10 @@
     <view class="section-title">描述你想要画的图片</view>
     <t-textarea
       class="prompt-input"
-      value="{{prompt}}"
+      model:value="{{prompt}}"
       placeholder="试试描述：主角 + 在哪里 + 做什么 + 像什么风格？&#10;&#10;例如：一只可爱的小猫在梦幻森林中玩耍，日系动漫风格"
       maxlength="500"
-      bind:change="onPromptChange"
+      bind:input="onPromptInput"
       bind:blur="onPromptBlur"
     />
     
@@ -34,10 +34,9 @@
       <view class="input-title">不想要的内容（可选）：</view>
       <t-input
         class="negative-prompt-input"
-        value="{{negativePrompt}}"
+        model:value="{{negativePrompt}}"
         placeholder="例如：不要文字、不要模糊、不要水印"
         maxlength="200"
-        bind:change="onNegativePromptChange"
       />
     </view>
   </view>

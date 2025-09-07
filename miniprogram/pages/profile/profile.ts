@@ -279,12 +279,9 @@ Page<ProfilePageData, any>({
     });
   },
 
-  // 昵称输入变化
-  onNicknameChange(e: any) {
-    const nickname = e.detail.value;
-    this.setData({
-      tempNickname: nickname
-    });
+  // 昵称输入变化（双向绑定自动处理，此方法保留用于其他逻辑）
+  onNicknameChange() {
+    // 双向绑定自动处理数据更新，这里可以添加其他逻辑
   },
 
   // 昵称输入框聚焦
